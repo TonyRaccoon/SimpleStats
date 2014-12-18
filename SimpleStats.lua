@@ -585,8 +585,6 @@ local function handleTooltip(self, ...)
 				_,_,_,_,_,_,_,_,firstloc = GetItemInfo(GetInventoryItemLink("player",16))
 			end
 		end
-			
-		if (addedLine == false) then addedLine = true; tooltip:AddLine(" ") end
 		
 		local soloEquipped = false -- true if the weapon cannot be equipped with a second weapon
 		if loc == "INVTYPE_2HWEAPON" or loc == "INVTYPE_RANGED" or (loc == "INVTYPE_RANGEDRIGHT" and subtype ~= "Wands") then
@@ -614,6 +612,8 @@ local function handleTooltip(self, ...)
 				(k == "ITEM_MOD_INTELLECT_SHORT" and v > 0 and SimpleStats.db.profile.hideintellect) then
 				return false end
 		end
+		
+		if (addedLine == false) then addedLine = true; tooltip:AddLine(" ") end
 		
 		if loc == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
 			tooltip:AddLine("Trinket 1:")
