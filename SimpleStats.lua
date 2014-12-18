@@ -406,58 +406,58 @@ local function checkWeaponType(type)
 		then return true else return false end
 	
 	elseif class == "DRUID" then
-		if type == localized.weapons.daggers
+		if type == localized.weapons.onehandedmaces
+		or type == localized.weapons.twohandedmaces
+		or type == localized.weapons.daggers
 		or type == localized.weapons.fistweapons
-		or type == localized.weapons.onehandedmaces
 		or type == localized.weapons.polearms
 		or type == localized.weapons.staves
-		or type == localized.weapons.twohandedmaces
 		then return true else return false end
 		
 	elseif class == "HUNTER" then
-		if type == localized.weapons.bows
+		if type == localized.weapons.onehandedaxes
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.twohandedaxes
+		or type == localized.weapons.twohandedswords
+		or type == localized.weapons.bows
 		or type == localized.weapons.crossbows
 		or type == localized.weapons.daggers
 		or type == localized.weapons.guns
 		or type == localized.weapons.fistweapons
-		or type == localized.weapons.onehandedaxes
-		or type == localized.weapons.onehandedswords
 		or type == localized.weapons.polearms
 		or type == localized.weapons.staves
-		or type == localized.weapons.twohandedaxes
-		or type == localized.weapons.twohandedswords
 		then return true else return false end
 	
 	elseif class == "MAGE" then
-		if type == localized.weapons.daggers
+		if type == localized.weapons.onehandedswords
+		or type == localized.weapons.daggers
 		or type == localized.weapons.staves
-		or type == localized.weapons.swords
 		or type == localized.weapons.wands
 		then return true else return false end
 	
 	elseif class == "PALADIN" then
 		if type == localized.weapons.onehandedaxes
 		or type == localized.weapons.onehandedmaces
-		or type == localized.weapons.polearms
 		or type == localized.weapons.onehandedswords
 		or type == localized.weapons.twohandedaxes
 		or type == localized.weapons.twohandedmaces
 		or type == localized.weapons.twohandedswords
+		or type == localized.weapons.polearms
 		then return true else return false end
 	
 	elseif class == "PRIEST" then
-		if type == localized.weapons.daggers
-		or type == localized.weapons.onehandedmaces
+		if type == localized.weapons.onehandedmaces
+		or type == localized.weapons.daggers
 		or type == localized.weapons.staves
 		or type == localized.weapons.wands
 		then return true else return false end
 	
 	elseif class == "ROGUE" then
 		if type == localized.weapons.onehandedaxes
-		or type == localized.weapons.daggers
-		or type == localized.weapons.fistweapons
 		or type == localized.weapons.onehandedmaces
 		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
 		or type == localized.weapons.bows
 		or type == localized.weapons.crossbows
 		or type == localized.weapons.guns
@@ -465,42 +465,42 @@ local function checkWeaponType(type)
 	
 	elseif class == "SHAMAN" then
 		if type == localized.weapons.onehandedaxes
-		or type == localized.weapons.daggers
-		or type == localized.weapons.fistweapons
 		or type == localized.weapons.onehandedmaces
-		or type == localized.weapons.staves
 		or type == localized.weapons.twohandedaxes
 		or type == localized.weapons.twohandedmaces
+		or type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.staves
 		then return true else return false end
 	
 	elseif class == "WARLOCK" then
-		if type == localized.weapons.daggers
+		if type == localized.weapons.onehandedswords
+		or type == localized.weapons.daggers
 		or type == localized.weapons.staves
-		or type == localized.weapons.onehandedswords
 		or type == localized.weapons.wands
 		then return true else return false end
 	
 	elseif class == "WARRIOR" then
 		if type == localized.weapons.onehandedaxes
-		or type == localized.weapons.daggers
-		or type == localized.weapons.fistweapons
 		or type == localized.weapons.onehandedmaces
-		or type == localized.weapons.polearms
-		or type == localized.weapons.staves
 		or type == localized.weapons.onehandedswords
 		or type == localized.weapons.twohandedaxes
 		or type == localized.weapons.twohandedmaces
 		or type == localized.weapons.twohandedswords
+		or type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.polearms
+		or type == localized.weapons.staves
 		or type == localized.weapons.bows
 		or type == localized.weapons.crossbows
 		or type == localized.weapons.guns
 		then return true else return false end
 	
 	elseif class == "MONK" then
-		if type == localized.weapons.fistweapons
-		or type == localized.weapons.onehandedaxes
+		if type == localized.weapons.onehandedaxes
 		or type == localized.weapons.onehandedmaces
 		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.fistweapons
 		or type == localized.weapons.polearms
 		or type == localized.weapons.staves
 		then return true else return false end
