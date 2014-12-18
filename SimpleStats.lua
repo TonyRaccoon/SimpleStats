@@ -8,7 +8,7 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0")
-local handled, addedLine, prettyName, curStats, newStats, invTypes, tooltip, order
+local handled, prettyName, curStats, newStats, invTypes, tooltip, order
 
 local defaults = {
 	profile = {
@@ -328,7 +328,6 @@ end
 
 local function resetTooltip()
 	handled = false
-	addedLine = false
 end
 
 local function statIsEnabled(name)
@@ -613,7 +612,7 @@ local function handleTooltip(self, ...)
 				return false end
 		end
 		
-		if (addedLine == false) then addedLine = true; tooltip:AddLine(" ") end
+		tooltip:AddLine(" ")
 		
 		if loc == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
 			tooltip:AddLine("Trinket 1:")
@@ -790,7 +789,6 @@ function SimpleStats:OnInitialize()
 	end
 	
 	handled = false
-	addedLine = false
 	setupTables()
 	
 	GameTooltip:HookScript("OnTooltipCleared",resetTooltip)
