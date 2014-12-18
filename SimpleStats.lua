@@ -8,7 +8,7 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0")
-local handled, prettyName, curStats, newStats, invTypes, tooltip, order
+local prettyName, curStats, newStats, invTypes, tooltip, order
 
 local defaults = {
 	profile = {
@@ -327,7 +327,7 @@ local function sortStats(t)
 end
 
 local function resetTooltip()
-	handled = false
+	
 end
 
 local function statIsEnabled(name)
@@ -788,10 +788,8 @@ function SimpleStats:OnInitialize()
 		options.args.shields.disabled = true
 	end
 	
-	handled = false
 	setupTables()
 	
-	GameTooltip:HookScript("OnTooltipCleared",resetTooltip)
 	GameTooltip:HookScript("OnTooltipSetItem",handleTooltip)
 	ItemRefTooltip:HookScript("OnTooltipSetItem",handleTooltip)
 	
