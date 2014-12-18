@@ -8,7 +8,7 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0")
-local localized, resistanceNames, curStats, newStats, invTypes, tooltip, order
+local localized, resistanceNames, noNumberStats, curStats, newStats, invTypes, tooltip, order
 
 local defaults = {
 	profile = {
@@ -25,6 +25,7 @@ local defaults = {
 		ITEM_MOD_SPELL_POWER_SHORT = true,
 		ITEM_MOD_PVP_POWER_SHORT = true,
 		ITEM_MOD_RESILIENCE_RATING_SHORT = true,
+		ITEM_MOD_CR_STURDINESS_SHORT = true,
 		resistance = true,
 		sockets = true,
 		
@@ -200,6 +201,11 @@ local options = {
 			name = "Gem Sockets",
 			order = 280,
 		},
+		ITEM_MOD_CR_STURDINESS_SHORT = {
+			type = "toggle",
+			name = "Indestructible",
+			order = 290,
+		},
 		
 		header5 = {type = "header", name = "Hide When Stat Exists", order = 340},
 		
@@ -350,9 +356,17 @@ local function printStats(tnew,tcur,tcur2)
 		val = v[2]+0
 		if statIsEnabled(name) then
 			if (val > 0) then
-				tooltip:AddLine("|cff00ff00+"..val.."|cffffffff ".._G[convertedName])
+				if noNumberStats[convertedName] then
+					tooltip:AddLine("|cff00ff00+".._G[convertedName])
+				else
+					tooltip:AddLine("|cff00ff00+"..val.."|cffffffff ".._G[convertedName])
+				end
 			elseif (val < 0) then
-				tooltip:AddLine("|cffff0000"..val.."|cffffffff ".._G[convertedName])
+				if noNumberStats[convertedName] then
+					tooltip:AddLine("|cffff0000-".._G[convertedName])
+				else
+					tooltip:AddLine("|cffff0000"..val.."|cffffffff ".._G[convertedName])
+				end
 			end
 		end
 	end
@@ -667,7 +681,6 @@ local function setupTables()
 		INVTYPE_TABARD = 19,
 	}
 	
-	
 	local order_inverted = {
 		"RESISTANCE0_NAME",
 		"ITEM_MOD_DAMAGE_PER_SECOND_SHORT",
@@ -701,6 +714,12 @@ local function setupTables()
 		"EMPTY_SOCKET_RED",
 		"EMPTY_SOCKET_BLUE",
 		"EMPTY_SOCKET_YELLOW",
+		"ITEM_MOD_CR_STURDINESS_SHORT",
+	}
+	
+	-- The following stats should not show a number (+Indestructible instead of +57 Indestructible, for example)
+	noNumberStats = {
+		ITEM_MOD_CR_STURDINESS_SHORT = true,
 	}
 	
 	order = {}
