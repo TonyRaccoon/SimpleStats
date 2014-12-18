@@ -52,21 +52,20 @@ local options = {
 	name = "SimpleStats",
 	handler = SimpleStats,
 	type = "group",
+	get = "get",
+	set = "set",
+	
 	args = {
 		minquality = {
 			type = "select",
 			name = "Minimum Quality",
 			values = {"Uncommon", "Rare", "Epic"},
-			get = "get",
-			set = "set",
 			order = 10,
 		},
 		
 		usableweaponsonly = {
 			type = "toggle",
 			name = "Ignore unusable weapon types",
-			get = "get",
-			set = "set",
 			order = 20,
 			width = "full"
 		},
@@ -76,36 +75,26 @@ local options = {
 		cloth = {
 			type = "toggle",
 			name = "Show on cloth",
-			get = "get",
-			set = "set",
 			order = 40,
 		},
 		leather = {
 			type = "toggle",
 			name = "Show on leather",
-			get = "get",
-			set = "set",
 			order = 50,
 		},
 		mail = {
 			type = "toggle",
 			name = "Show on mail",
-			get = "get",
-			set = "set",
 			order = 60,
 		},
 		plate = {
 			type = "toggle",
 			name = "Show on plate",
-			get = "get",
-			set = "set",
 			order = 70,
 		},
 		shields = {
 			type = "toggle",
 			name = "Show on shields",
-			get = "get",
-			set = "set",
 			order = 80,
 		},
 		
@@ -114,48 +103,36 @@ local options = {
 		armor = {
 			type = "toggle",
 			name = "Armor",
-			get = "get",
-			set = "set",
 			order = 100,
 			width = "half"
 		},
 		dps = {
 			type = "toggle",
 			name = "DPS",
-			get = "get",
-			set = "set",
 			order = 110,
 			width = "half"
 		},
 		stamina = {
 			type = "toggle",
 			name = "Stamina",
-			get = "get",
-			set = "set",
 			order = 120,
 			width = "half"
 		},
 		agility = {
 			type = "toggle",
 			name = "Agility",
-			get = "get",
-			set = "set",
 			order = 130,
 			width = "half"
 		},
 		strength = {
 			type = "toggle",
 			name = "Strength",
-			get = "get",
-			set = "set",
 			order = 140,
 			width = "half"
 		},
 		intellect = {
 			type = "toggle",
 			name = "Intellect",
-			get = "get",
-			set = "set",
 			order = 150,
 			width = "half"
 		},
@@ -165,74 +142,54 @@ local options = {
 		crit = {
 			type = "toggle",
 			name = "Crit",
-			get = "get",
-			set = "set",
 			order = 170,
 		},
 		haste = {
 			type = "toggle",
 			name = "Haste",
-			get = "get",
-			set = "set",
 			order = 180,
 		},
 		spirit = {
 			type = "toggle",
 			name = "Spirit",
-			get = "get",
-			set = "set",
 			order = 190,
 		},
 		spellpower = {
 			type = "toggle",
 			name = "Spell Power",
-			get = "get",
-			set = "set",
 			order = 200,
 		},
 		mastery = {
 			type = "toggle",
 			name = "Mastery",
-			get = "get",
-			set = "set",
 			order = 210,
 		},
 		multistrike = {
 			type = "toggle",
 			name = "Multistrike",
-			get = "get",
-			set = "set",
 			order = 211,
 		},
 		versatility = {
 			type = "toggle",
 			name = "Versatility",
-			get = "get",
-			set = "set",
 			order = 212,
 		},
 		
 		pvppower = {
 			type = "toggle",
 			name = "PvP Power",
-			get = "get",
-			set = "set",
 			order = 230,
 		},
 		
 		pvpresilience = {
 			type = "toggle",
 			name = "PvP Resilience",
-			get = "get",
-			set = "set",
 			order = 240,
 		},
 		
 		resistance = {
 			type = "toggle",
 			name = "Resistances",
-			get = "get",
-			set = "set",
 			order = 250,
 		},
 		
@@ -241,43 +198,31 @@ local options = {
 		metasockets = {
 			type = "toggle",
 			name = "Meta Sockets",
-			get = "get",
-			set = "set",
 			order = 280,
 		},
 		prismaticsockets = {
 			type = "toggle",
 			name = "Prismatic Sockets",
-			get = "get",
-			set = "set",
 			order = 290,
 		},
 		cogwheelsockets = {
 			type = "toggle",
 			name = "Cogwheel Sockets",
-			get = "get",
-			set = "set",
 			order = 300,
 		},
 		redsockets = {
 			type = "toggle",
 			name = "Red Sockets",
-			get = "get",
-			set = "set",
 			order = 310,
 		},
 		bluesockets = {
 			type = "toggle",
 			name = "Blue Sockets",
-			get = "get",
-			set = "set",
 			order = 320,
 		},
 		yellowsockets = {
 			type = "toggle",
 			name = "Yellow Sockets",
-			get = "get",
-			set = "set",
 			order = 330,
 		},
 		
@@ -286,24 +231,18 @@ local options = {
 		hideagility = {
 			type = "toggle",
 			name = "Agility",
-			get = "get",
-			set = "set",
 			order = 350,
 			width = "half"
 		},
 		hidestrength = {
 			type = "toggle",
 			name = "Strength",
-			get = "get",
-			set = "set",
 			order = 360,
 			width = "half"
 		},
 		hideintellect = {
 			type = "toggle",
 			name = "Intellect",
-			get = "get",
-			set = "set",
 			order = 370,
 			width = "half"
 		}
