@@ -33,6 +33,7 @@ local defaults = {
 		pvpresilience = true,
 		resistance = true,
 		
+		smartarmor = true,
 		cloth = true,
 		leather = true,
 		mail = true,
@@ -72,6 +73,12 @@ local options = {
 		
 		header1 = {type = "header", name = "Armor Types", order = 30},
 		
+		smartarmor = {
+			type = "toggle",
+			name = "Automatic based on class",
+			order = 35,
+			width = "full",
+		},
 		cloth = {
 			type = "toggle",
 			name = "Show on cloth",
@@ -254,6 +261,14 @@ function SimpleStats:get(i)
 end
 function SimpleStats:set(i,v)
 	self.db.profile[i[1]] = v
+	
+	if i[1] == "smartarmor" then
+		options.args.cloth.disabled = v
+		options.args.leather.disabled = v
+		options.args.mail.disabled = v
+		options.args.plate.disabled = v
+		options.args.shields.disabled = v
+	end
 end
 
 function SimpleStats:ChatCommand(input)
@@ -503,6 +518,30 @@ local function checkWeaponType(type)
 	end
 end
 
+function checkArmorType(type)
+	type = type:lower()
+	_,c = UnitClass("player")
+	c = c:lower()
+	l = UnitLevel("player")
+	
+	if type == "cloth" then
+		if c == "priest" or c == "mage" or c == "warlock"	then return true end
+	elseif type == "leather" then
+		if (c == "hunter" or c == "shaman") and l < 40		then return true end
+		if c == "rogue" or c == "monk" or c == "druid"		then return true end
+	elseif type == "mail" then
+		if (c == "hunter" or c == "shaman") and l >= 40		then return true end
+		if (c == "warrior" or c == "paladin") and l < 40	then return true end
+	elseif type == "plate" then
+		if (c == "warrior" or c == "paladin") and l >= 40	then return true end
+		if c == "deathknight"								then return true end
+	elseif type == "shields" then
+		if c == "warrior" or c == "paladin" or c == "shaman" then return true end
+	end
+	
+	return false
+end
+
 local function handleTooltip(self, ...)
 	tooltip = self
 	local name, item = tooltip:GetItem()
@@ -519,9 +558,16 @@ local function handleTooltip(self, ...)
 		if rarity-1 < SimpleStats.db.profile.minquality then return end														-- If it's below the current quality threshold, quit
 		if type == "Weapon" and (SimpleStats.db.profile.usableweaponsonly and not checkWeaponType(subtype)) then return end	-- Check weapon type
 		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end													-- Filter out shirts/tabards
-		if type == "Armor" and subtype ~= "Miscellaneous" and loc ~= "INVTYPE_CLOAK" and not SimpleStats.db.profile[subtype:lower()] then return end -- Filter out disabled armor types (always show for Misc items and cloaks)
-		if id == equipid and not hasTwoSlots(loc) then return end															-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
 		
+		if type == "Armor" and subtype ~= "Miscellaneous" and loc ~= "INVTYPE_CLOAK" then									-- Filter out disabled armor types (always show for Misc items and cloaks)
+			if SimpleStats.db.profile.smartarmor then
+				if not checkArmorType(subtype) then return end
+			else
+				if not SimpleStats.db.profile[subtype:lower()] then return end
+			end
+		end
+		
+		if id == equipid and not hasTwoSlots(loc) then return end															-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
 		
 		local e1link = GetInventoryItemLink("player",invTypes[loc])
 		local e2link,firstloc
@@ -733,6 +779,15 @@ function SimpleStats:OnInitialize()
 	options2.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(SimpleStats.db)
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats Profile", options2.args.profile)
 	self.profileFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats Profile", "Profiles", "SimpleStats")
+	
+	-- Disable individual armor options when 'Auto armor' option is checked
+	if (self.db.profile.smartarmor) then
+		options.args.cloth.disabled = true
+		options.args.leather.disabled = true
+		options.args.mail.disabled = true
+		options.args.plate.disabled = true
+		options.args.shields.disabled = true
+	end
 	
 	handled = false
 	addedLine = false
