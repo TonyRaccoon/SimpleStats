@@ -8,29 +8,29 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0")
-local prettyName, curStats, newStats, invTypes, tooltip, order
+local localized, resistanceNames, curStats, newStats, invTypes, tooltip, order
 
 local defaults = {
 	profile = {
-		armor = true,
-		dps = true,
-		metasockets = true,
-		prismaticsockets = true,
-		cogwheelsockets = true,
-		redsockets = true,
-		bluesockets = true,
-		yellowsockets = true,
-		stamina = true,
-		agility = true,
-		strength = true,
-		intellect = true,
-		spirit = true,
-		crit = true,
-		haste = true,
-		mastery = true,
-		spellpower = true,
-		pvppower = true,
-		pvpresilience = true,
+		RESISTANCE0_NAME = true,
+		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = true,
+		EMPTY_SOCKET_META = true,
+		EMPTY_SOCKET_PRISMATIC = true,
+		EMPTY_SOCKET_COGWHEEL = true,
+		EMPTY_SOCKET_RED = true,
+		EMPTY_SOCKET_BLUE = true,
+		EMPTY_SOCKET_YELLOW = true,
+		ITEM_MOD_STAMINA_SHORT = true,
+		ITEM_MOD_AGILITY_SHORT = true,
+		ITEM_MOD_STRENGTH_SHORT = true,
+		ITEM_MOD_INTELLECT_SHORT = true,
+		ITEM_MOD_CRIT_RATING_SHORT = true,
+		ITEM_MOD_CRIT_RATING_SHORT = true,
+		ITEM_MOD_HASTE_RATING_SHORT = true,
+		ITEM_MOD_MASTERY_RATING_SHORT = true,
+		ITEM_MOD_SPELL_POWER_SHORT = true,
+		ITEM_MOD_PVP_POWER_SHORT = true,
+		ITEM_MOD_RESILIENCE_RATING_SHORT = true,
 		resistance = true,
 		
 		smartarmor = true,
@@ -107,37 +107,37 @@ local options = {
 		
 		header2 = {type = "header", name = "Primary Stats", order = 90},
 		
-		armor = {
+		RESISTANCE0_NAME = {
 			type = "toggle",
 			name = "Armor",
 			order = 100,
 			width = "half"
 		},
-		dps = {
+		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = {
 			type = "toggle",
 			name = "DPS",
 			order = 110,
 			width = "half"
 		},
-		stamina = {
+		ITEM_MOD_STAMINA_SHORT = {
 			type = "toggle",
 			name = "Stamina",
 			order = 120,
 			width = "half"
 		},
-		agility = {
+		ITEM_MOD_AGILITY_SHORT = {
 			type = "toggle",
 			name = "Agility",
 			order = 130,
 			width = "half"
 		},
-		strength = {
+		ITEM_MOD_STRENGTH_SHORT = {
 			type = "toggle",
 			name = "Strength",
 			order = 140,
 			width = "half"
 		},
-		intellect = {
+		ITEM_MOD_INTELLECT_SHORT = {
 			type = "toggle",
 			name = "Intellect",
 			order = 150,
@@ -146,49 +146,47 @@ local options = {
 		
 		header3 = {type = "header", name = "Secondary Stats", order = 160},
 		
-		crit = {
+		ITEM_MOD_CRIT_RATING_SHORT = {
 			type = "toggle",
 			name = "Crit",
 			order = 170,
 		},
-		haste = {
+		ITEM_MOD_HASTE_RATING_SHORT = {
 			type = "toggle",
 			name = "Haste",
 			order = 180,
 		},
-		spirit = {
+		ITEM_MOD_SPIRIT_SHORT = {
 			type = "toggle",
 			name = "Spirit",
 			order = 190,
 		},
-		spellpower = {
+		ITEM_MOD_SPELL_POWER_SHORT = {
 			type = "toggle",
 			name = "Spell Power",
 			order = 200,
 		},
-		mastery = {
+		ITEM_MOD_MASTERY_RATING_SHORT = {
 			type = "toggle",
 			name = "Mastery",
 			order = 210,
 		},
-		multistrike = {
+		ITEM_MOD_CR_MULTISTRIKE_SHORT = {
 			type = "toggle",
 			name = "Multistrike",
 			order = 211,
 		},
-		versatility = {
+		ITEM_MOD_VERSATILITY = {
 			type = "toggle",
 			name = "Versatility",
 			order = 212,
 		},
-		
-		pvppower = {
+		ITEM_MOD_PVP_POWER_SHORT = {
 			type = "toggle",
 			name = "PvP Power",
 			order = 230,
 		},
-		
-		pvpresilience = {
+		ITEM_MOD_RESILIENCE_RATING_SHORT = {
 			type = "toggle",
 			name = "PvP Resilience",
 			order = 240,
@@ -289,6 +287,10 @@ function SimpleStats:ChatCommand(input)
 	end
 end
 
+local function convertResistanceName(name)
+	return resistanceNames[name] or name
+end
+
 local function sortStats(t)
 	local tp = {} -- positives
 	local tn = {} -- negatives
@@ -308,8 +310,8 @@ local function sortStats(t)
 	for k,v in pairs(tp) do
 		local name = v[1]
 		local value = math.floor(v[2])
-		if order[prettyName[name]] then
-			local pos = order[prettyName[name]]
+		if order[name] then
+			local pos = order[name]
 			tf[pos] = {name,value}
 		end
 	end
@@ -317,8 +319,8 @@ local function sortStats(t)
 	for k,v in pairs(tn) do
 		local name = v[1]
 		local value = math.floor(v[2])
-		if order[prettyName[name]] then
-			local pos = order[prettyName[name]]+30
+		if order[name] then
+			local pos = order[name]+30
 			tf[pos] = {name,value}
 		end
 	end
@@ -331,10 +333,10 @@ local function resetTooltip()
 end
 
 local function statIsEnabled(name)
-	if strmatch(name,"Resistance") then
+	if strmatch(name,"RESISTANCE_SHORT") then
 		return SimpleStats.db.profile.resistance
 	else
-		return SimpleStats.db.profile[name:lower():gsub(" ","")]
+		return SimpleStats.db.profile[name]
 	end
 end
 
@@ -368,14 +370,17 @@ local function printStats(tnew,tcur,tcur2)
 	local stats = sortStats(tchanged)
 	
 	for k,v in orderedPairs(stats) do
-		k = prettyName[k]
 		name = v[1]
+		
+		-- If it's a resistance, the localized strings are wrong and need to be converted to a second style to work
+		convertedName = convertResistanceName(name)
+		
 		val = v[2]+0
-		if statIsEnabled(prettyName[name]) then
+		if statIsEnabled(name) then
 			if (val > 0) then
-				tooltip:AddLine("|cff00ff00+"..val.."|cffffffff "..prettyName[name])
+				tooltip:AddLine("|cff00ff00+"..val.."|cffffffff ".._G[convertedName])
 			elseif (val < 0) then
-				tooltip:AddLine("|cffff0000"..val.."|cffffffff "..prettyName[name])
+				tooltip:AddLine("|cffff0000"..val.."|cffffffff ".._G[convertedName])
 			end
 		end
 	end
@@ -405,137 +410,135 @@ local function checkWeaponType(type)
 	_,class = UnitClass("player")
 	
 	if class == "DEATHKNIGHT" then
-		if type == "One-Handed Axes"
-		or type == "One-Handed Maces"
-		or type == "One-Handed Swords"
-		or type == "Two-Handed Axes"
-		or type == "Two-Handed Maces"
-		or type == "Two-Handed Swords"
-		or type == "Polearms"
+		if type == localized.weapons.onehandedaxes
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.twohandedaxes
+		or type == localized.weapons.twohandedmaces
+		or type == localized.weapons.twohandedswords
+		or type == localized.weapons.polearms
 		then return true else return false end
 	
 	elseif class == "DRUID" then
-		if type == "Daggers"
-		or type == "Fist Weapons"
-		or type == "One-Handed Maces"
-		or type == "Polearms"
-		or type == "Staves"
-		or type == "Two-Handed Maces"
+		if type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.polearms
+		or type == localized.weapons.staves
+		or type == localized.weapons.twohandedmaces
 		then return true else return false end
 		
 	elseif class == "HUNTER" then
-		if type == "Bows"
-		or type == "Crossbows"
-		or type == "Daggers"
-		or type == "Guns"
-		or type == "Fist Weapons"
-		or type == "One-Handed Axes"
-		or type == "One-Handed Swords"
-		or type == "Polearms"
-		or type == "Staves"
-		or type == "Two-Handed Axes"
-		or type == "Two-Handed Swords"
+		if type == localized.weapons.bows
+		or type == localized.weapons.crossbows
+		or type == localized.weapons.daggers
+		or type == localized.weapons.guns
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.onehandedaxes
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.polearms
+		or type == localized.weapons.staves
+		or type == localized.weapons.twohandedaxes
+		or type == localized.weapons.twohandedswords
 		then return true else return false end
 	
 	elseif class == "MAGE" then
-		if type == "Daggers"
-		or type == "Staves"
-		or type == "One-Handed Swords"
-		or type == "Wands"
+		if type == localized.weapons.daggers
+		or type == localized.weapons.staves
+		or type == localized.weapons.swords
+		or type == localized.weapons.wands
 		then return true else return false end
 	
 	elseif class == "PALADIN" then
-		if type == "One-Handed Axes"
-		or type == "One-Handed Maces"
-		or type == "Polearms"
-		or type == "One-Handed Swords"
-		or type == "Two-Handed Axes"
-		or type == "Two-Handed Maces"
-		or type == "Two-Handed Swords"
+		if type == localized.weapons.onehandedaxes
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.polearms
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.twohandedaxes
+		or type == localized.weapons.twohandedmaces
+		or type == localized.weapons.twohandedswords
 		then return true else return false end
 	
 	elseif class == "PRIEST" then
-		if type == "Daggers"
-		or type == "One-Handed Maces"
-		or type == "Staves"
-		or type == "Wands"
+		if type == localized.weapons.daggers
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.staves
+		or type == localized.weapons.wands
 		then return true else return false end
 	
 	elseif class == "ROGUE" then
-		if type == "One-Handed Axes"
-		or type == "Daggers"
-		or type == "Fist Weapons"
-		or type == "One-Handed Maces"
-		or type == "One-Handed Swords"
-		or type == "Bows"
-		or type == "Crossbows"
-		or type == "Guns"
+		if type == localized.weapons.onehandedaxes
+		or type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.bows
+		or type == localized.weapons.crossbows
+		or type == localized.weapons.guns
 		then return true else return false end
 	
 	elseif class == "SHAMAN" then
-		if type == "One-Handed Axes"
-		or type == "Daggers"
-		or type == "Fist Weapons"
-		or type == "One-Handed Maces"
-		or type == "Staves"
-		or type == "Two-Handed Axes"
-		or type == "Two-Handed Maces"
+		if type == localized.weapons.onehandedaxes
+		or type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.staves
+		or type == localized.weapons.twohandedaxes
+		or type == localized.weapons.twohandedmaces
 		then return true else return false end
 	
 	elseif class == "WARLOCK" then
-		if type == "Daggers"
-		or type == "Staves"
-		or type == "One-Handed Swords"
-		or type == "Wands"
+		if type == localized.weapons.daggers
+		or type == localized.weapons.staves
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.wands
 		then return true else return false end
 	
 	elseif class == "WARRIOR" then
-		if type == "One-Handed Axes"
-		or type == "Daggers"
-		or type == "Fist Weapons"
-		or type == "One-Handed Maces"
-		or type == "Polearms"
-		or type == "Staves"
-		or type == "One-Handed Swords"
-		or type == "Two-Handed Axes"
-		or type == "Two-Handed Maces"
-		or type == "Two-Handed Swords"
-		or type == "Bows"
-		or type == "Crossbows"
-		or type == "Guns"
+		if type == localized.weapons.onehandedaxes
+		or type == localized.weapons.daggers
+		or type == localized.weapons.fistweapons
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.polearms
+		or type == localized.weapons.staves
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.twohandedaxes
+		or type == localized.weapons.twohandedmaces
+		or type == localized.weapons.twohandedswords
+		or type == localized.weapons.bows
+		or type == localized.weapons.crossbows
+		or type == localized.weapons.guns
 		then return true else return false end
 	
 	elseif class == "MONK" then
-		if type == "Fist Weapons"
-		or type == "One-Handed Axes"
-		or type == "One-Handed Maces"
-		or type == "One-Handed Swords"
-		or type == "Polearms"
-		or type == "Staves"
+		if type == localized.weapons.fistweapons
+		or type == localized.weapons.onehandedaxes
+		or type == localized.weapons.onehandedmaces
+		or type == localized.weapons.onehandedswords
+		or type == localized.weapons.polearms
+		or type == localized.weapons.staves
 		then return true else return false end
 	
 	end
 end
 
 function checkArmorType(type)
-	type = type:lower()
 	_,c = UnitClass("player")
-	c = c:lower()
 	l = UnitLevel("player")
 	
-	if type == "cloth" then
-		if c == "priest" or c == "mage" or c == "warlock"	then return true end
-	elseif type == "leather" then
-		if (c == "hunter" or c == "shaman") and l < 40		then return true end
-		if c == "rogue" or c == "monk" or c == "druid"		then return true end
-	elseif type == "mail" then
-		if (c == "hunter" or c == "shaman") and l >= 40		then return true end
-		if (c == "warrior" or c == "paladin") and l < 40	then return true end
-	elseif type == "plate" then
-		if (c == "warrior" or c == "paladin") and l >= 40	then return true end
-		if c == "deathknight"								then return true end
-	elseif type == "shields" then
-		if c == "warrior" or c == "paladin" or c == "shaman" then return true end
+	if type == localized.armor.cloth then
+		if c == "PRIEST" or c == "MAGE" or c == "WARLOCK"	then return true end
+	elseif type == localized.armor.leather then
+		if (c == "HUNTER" or c == "SHAMAN") and l < 40		then return true end
+		if c == "ROGUE" or c == "MONK" or c == "DRUID"		then return true end
+	elseif type == localized.armor.mail then
+		if (c == "HUNTER" or c == "SHAMAN") and l >= 40		then return true end
+		if (c == "WARRIOR" or c == "PALADIN") and l < 40	then return true end
+	elseif type == localized.armor.plate then
+		if (c == "WARRIOR" or c == "PALADIN") and l >= 40	then return true end
+		if c == "DEATHKNIGHT"								then return true end
+	elseif type == localized.armor.shields then
+		if c == "WARRIOR" or c == "PALADIN" or c == "SHAMAN" then return true end
 	end
 	
 	return false
@@ -553,16 +556,17 @@ local function handleTooltip(self, ...)
 		local id = tonumber(strmatch(link,"item:(%d+):"))
 		local equipid = GetInventoryItemID("player",invTypes[loc])
 		
-		if type ~= "Armor" and type ~= "Weapon" then return end																-- If it's not armor or a weapon, quit
+		if type ~= localized.armor_name and type ~= localized.weapon_name then return end									-- If it's not armor or a weapon, quit
 		if rarity-1 < SimpleStats.db.profile.minquality then return end														-- If it's below the current quality threshold, quit
-		if type == "Weapon" and (SimpleStats.db.profile.usableweaponsonly and not checkWeaponType(subtype)) then return end	-- Check weapon type
+		if type == localized.weapon_name and (SimpleStats.db.profile.usableweaponsonly and not checkWeaponType(subtype)) then return end	-- Check weapon type
 		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end													-- Filter out shirts/tabards
 		
-		if type == "Armor" and subtype ~= "Miscellaneous" and loc ~= "INVTYPE_CLOAK" then									-- Filter out disabled armor types (always show for Misc items and cloaks)
+		if type == localized.armor_name and subtype ~= localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then		-- Filter out disabled armor types (always show for Misc items and cloaks)
 			if SimpleStats.db.profile.smartarmor then
 				if not checkArmorType(subtype) then return end
 			else
-				if not SimpleStats.db.profile[subtype:lower()] then return end
+				local english_name = localized.reverse.armor[subtype]
+				if not SimpleStats.db.profile[english_name] then return end
 			end
 		end
 		
@@ -586,14 +590,14 @@ local function handleTooltip(self, ...)
 		end
 		
 		local soloEquipped = false -- true if the weapon cannot be equipped with a second weapon
-		if loc == "INVTYPE_2HWEAPON" or loc == "INVTYPE_RANGED" or (loc == "INVTYPE_RANGEDRIGHT" and subtype ~= "Wands") then
+		if loc == "INVTYPE_2HWEAPON" or loc == "INVTYPE_RANGED" or (loc == "INVTYPE_RANGEDRIGHT" and subtype ~= localized.weapons.wands) then
 			soloEquipped = true
 		end
 		
 		local curSoloEquipped = false -- true if the weapon in first weapon slot cannot be equipped with a second weapon
 		if GetInventoryItemLink("player",16) ~= nil then
 			local _,_,_,_,_,_,firstwepsubtype,_,firstweptype = GetItemInfo(GetInventoryItemLink("player",16))
-			if firstweptype == "INVTYPE_2HWEAPON" or firstweptype == "INVTYPE_RANGED" or (firstweptype == "INVTYPE_RANGEDRIGHT" and firstwepsubtype ~= "Wands") then
+			if firstweptype == "INVTYPE_2HWEAPON" or firstweptype == "INVTYPE_RANGED" or (firstweptype == "INVTYPE_RANGEDRIGHT" and firstwepsubtype ~= localized.weapons.wands) then
 				curSoloEquipped = true
 			end
 		end
@@ -660,7 +664,6 @@ local function handleTooltip(self, ...)
 		elseif id ~= equipid then -- else, but only if the item isn't already equipped
 			curStats = getCurrentStats(e1link)
 			printStats(newStats,curStats)
-			
 		end
 	end
 end
@@ -691,72 +694,115 @@ local function setupTables()
 	invTypes["INVTYPE_RANGEDRIGHT"] = 16
 	invTypes["INVTYPE_TABARD"] = 19
 	
-	prettyName = {}
-	prettyName["RESISTANCE0_NAME"] = "Armor"
-	prettyName["ITEM_MOD_DAMAGE_PER_SECOND_SHORT"] = "DPS"
-	prettyName["EMPTY_SOCKET_META"] = "Meta Sockets"
-	prettyName["EMPTY_SOCKET_PRISMATIC"] = "Prismatic Sockets"
-	prettyName["EMPTY_SOCKET_COGWHEEL"] = "Cogwheel Sockets"
-	prettyName["EMPTY_SOCKET_RED"] = "Red Sockets"
-	prettyName["EMPTY_SOCKET_BLUE"] = "Blue Sockets"
-	prettyName["EMPTY_SOCKET_YELLOW"] = "Yellow Sockets"
-	prettyName["ITEM_MOD_STAMINA_SHORT"] = "Stamina"
-	prettyName["ITEM_MOD_AGILITY_SHORT"] = "Agility"
-	prettyName["ITEM_MOD_STRENGTH_SHORT"] = "Strength"
-	prettyName["ITEM_MOD_INTELLECT_SHORT"] = "Intellect"
-	prettyName["ITEM_MOD_CRIT_RATING_SHORT"] = "Crit"
-	prettyName["ITEM_MOD_MASTERY_RATING_SHORT"] = "Mastery"
-	prettyName["ITEM_MOD_HIT_RATING_SHORT"] = "Hit"
-	prettyName["ITEM_MOD_SPIRIT_SHORT"] = "Spirit"
-	prettyName["ITEM_MOD_HASTE_RATING_SHORT"] = "Haste"
-	prettyName["ITEM_MOD_EXPERTISE_RATING_SHORT"] = "Expertise"
-	prettyName["ITEM_MOD_DODGE_RATING_SHORT"] = "Dodge"
-	prettyName["ITEM_MOD_PARRY_RATING_SHORT"] = "Parry"
-	prettyName["ITEM_MOD_SPELL_POWER_SHORT"] = "Spellpower"
-	prettyName["ITEM_MOD_SPELL_PENETRATION_SHORT"] = "Spell Penetration"
-	prettyName["ITEM_MOD_ATTACK_POWER_SHORT"] = "Attack Power"
-	prettyName["ITEM_MOD_PVP_POWER_SHORT"] = "PvP Power"
-	prettyName["ITEM_MOD_RESILIENCE_RATING_SHORT"] = "PvP Resilience"
-	prettyName["ITEM_MOD_ARCANE_RESISTANCE_SHORT"] = "Arcane Resistance"
-	prettyName["ITEM_MOD_SHADOW_RESISTANCE_SHORT"] = "Shadow Resistance"
-	prettyName["ITEM_MOD_FROST_RESISTANCE_SHORT"] = "Frost Resistance"
-	prettyName["ITEM_MOD_FIRE_RESISTANCE_SHORT"] = "Fire Resistance"
-	prettyName["ITEM_MOD_NATURE_RESISTANCE_SHORT"] = "Nature Resistance"
-	prettyName["ITEM_MOD_CR_MULTISTRIKE_SHORT"] = "Multistrike"
-	prettyName["ITEM_MOD_VERSATILITY"] = "Versatility"
-	
 	order = {}
-	order["Armor"] = 1
-	order["DPS"] = 2
-	order["Meta Sockets"] = 3
-	order["Prismatic Sockets"] = 4
-	order["Cogwheel Sockets"] = 5
-	order["Red Sockets"] = 6
-	order["Blue Sockets"] = 7
-	order["Yellow Sockets"] = 8
-	order["Stamina"] = 9
-	order["Agility"] = 10
-	order["Strength"] = 11
-	order["Intellect"] = 12
-	order["Spirit"] = 13
-	order["Hit"] = 14
-	order["Crit"] = 15
-	order["Haste"] = 16
-	order["Expertise"] = 17
-	order["Dodge"] = 18
-	order["Parry"] = 19
-	order["Mastery"] = 20
-	order["Spellpower"] = 21
-	order["Attack Power"] = 23
-	order["Multistrike"] = 24
-	order["Versatility"] = 25
-	order["PvP Power"] = 26
-	order["PvP Resilience"] = 27
-	order["Fire Resistance"] = 28
-	order["Nature Resistance"] = 29
-	order["Frost Resistance"] = 30
-	order["Arcane Resistance"] = 31
-	order["Shadow Resistance"] = 32
+	order["RESISTANCE0_NAME"] = 1
+	order["ITEM_MOD_DAMAGE_PER_SECOND_SHORT"] = 2
+	order["EMPTY_SOCKET_META"] = 3
+	order["EMPTY_SOCKET_PRISMATIC"] = 4
+	order["EMPTY_SOCKET_COGWHEEL"] = 5
+	order["EMPTY_SOCKET_RED"] = 6
+	order["EMPTY_SOCKET_BLUE"] = 7
+	order["EMPTY_SOCKET_YELLOW"] = 8
+	order["ITEM_MOD_STAMINA_SHORT"] = 9
+	order["ITEM_MOD_AGILITY_SHORT"] = 10
+	order["ITEM_MOD_STRENGTH_SHORT"] = 11
+	order["ITEM_MOD_INTELLECT_SHORT"] = 12
+	order["ITEM_MOD_SPIRIT_SHORT"] = 13
+	order["ITEM_MOD_HIT_RATING_SHORT"] = 14
+	order["ITEM_MOD_CRIT_RATING_SHORT"] = 15
+	order["ITEM_MOD_HASTE_RATING_SHORT"] = 16
+	order["ITEM_MOD_EXPERTISE_RATING_SHORT"] = 17
+	order["ITEM_MOD_DODGE_RATING_SHORT"] = 18
+	order["ITEM_MOD_PARRY_RATING_SHORT"] = 19
+	order["ITEM_MOD_MASTERY_RATING_SHORT"] = 20
+	order["ITEM_MOD_SPELL_POWER_SHORT"] = 21
+	order["ITEM_MOD_SPELL_PENETRATION_SHORT"] = 22
+	order["ITEM_MOD_ATTACK_POWER_SHORT"] = 23
+	order["ITEM_MOD_CR_MULTISTRIKE_SHORT"] = 24
+	order["ITEM_MOD_VERSATILITY"] = 25
+	order["ITEM_MOD_PVP_POWER_SHORT"] = 26
+	order["ITEM_MOD_RESILIENCE_RATING_SHORT"] = 27
+	order["ITEM_MOD_FIRE_RESISTANCE_SHORT"] = 28
+	order["ITEM_MOD_NATURE_RESISTANCE_SHORT"] = 29
+	order["ITEM_MOD_FROST_RESISTANCE_SHORT"] = 30
+	order["ITEM_MOD_ARCANE_RESISTANCE_SHORT"] = 31
+	order["ITEM_MOD_SHADOW_RESISTANCE_SHORT"] = 32
+	
+	-- Create mapping between two different resistance names used
+	resistanceNames = {
+		ITEM_MOD_HOLY_RESISTANCE_SHORT   = "RESISTANCE1_NAME",
+		ITEM_MOD_FIRE_RESISTANCE_SHORT   = "RESISTANCE2_NAME",
+		ITEM_MOD_NATURE_RESISTANCE_SHORT = "RESISTANCE3_NAME",
+		ITEM_MOD_FROST_RESISTANCE_SHORT  = "RESISTANCE4_NAME",
+		ITEM_MOD_SHADOW_RESISTANCE_SHORT = "RESISTANCE5_NAME",
+		ITEM_MOD_ARCANE_RESISTANCE_SHORT = "RESISTANCE6_NAME",
+		RESISTANCE1_NAME                 = "ITEM_MOD_HOLY_RESISTANCE_SHORT",
+		RESISTANCE2_NAME                 = "ITEM_MOD_FIRE_RESISTANCE_SHORT",
+		RESISTANCE3_NAME                 = "ITEM_MOD_NATURE_RESISTANCE_SHORT",
+		RESISTANCE4_NAME                 = "ITEM_MOD_FROST_RESISTANCE_SHORT",
+		RESISTANCE5_NAME                 = "ITEM_MOD_SHADOW_RESISTANCE_SHORT",
+		RESISTANCE6_NAME                 = "ITEM_MOD_ARCANE_RESISTANCE_SHORT"
+	}
+	
+	-- Exract localized armor and weapon type strings from Auction House functions (no global strings for them are available)
+	local itemClasses = {GetAuctionItemClasses()}
+	local weaponTypes = {GetAuctionItemSubClasses(1)}
+	local armorTypes = {GetAuctionItemSubClasses(2)}
+	
+	local names = {
+		weapons = {
+			"onehandedaxes",
+			"twohandedaxes",
+			"bows",
+			"guns",
+			"onehandedmaces",
+			"twohandedmaces",
+			"polearms",
+			"onehandedswords",
+			"twohandedswords",
+			"staves",
+			"fistweapons",
+			"miscellaneous",
+			"daggers",
+			"thrown",
+			"crossbows",
+			"wands",
+			"fishingpoles"
+		},
+		armor = {
+			"miscellaneous",
+			"cloth",
+			"leather",
+			"mail",
+			"plate",
+			"cosmetic",
+			"shields"
+		}
+	}
+	
+	localized = {
+		weapon_name = itemClasses[1],
+		armor_name = itemClasses[2],
+		weapons = {},
+		armor = {},
+		reverse = {
+			armor = {}
+		}
+	}
+	
+	for i,name in pairs(names.weapons) do
+		localized.weapons[name] = weaponTypes[i]
+	end
+	
+	for i,name in pairs(names.armor) do
+		localized.armor[name] = armorTypes[i]
+	end
+	
+	for engname,locname in pairs(localized.armor) do
+		localized.reverse.armor[locname] = engname
+	end
+	
+	lemur = localized
 end
 
 local function hideBlizzComparison(self) -- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
