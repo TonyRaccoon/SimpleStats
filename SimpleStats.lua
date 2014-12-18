@@ -508,7 +508,7 @@ local function checkWeaponType(type)
 	end
 end
 
-function checkArmorType(type)
+local function checkArmorType(type)
 	_,c = UnitClass("player")
 	l = UnitLevel("player")
 	
