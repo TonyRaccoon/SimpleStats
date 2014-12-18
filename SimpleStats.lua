@@ -14,12 +14,6 @@ local defaults = {
 	profile = {
 		RESISTANCE0_NAME = true,
 		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = true,
-		EMPTY_SOCKET_META = true,
-		EMPTY_SOCKET_PRISMATIC = true,
-		EMPTY_SOCKET_COGWHEEL = true,
-		EMPTY_SOCKET_RED = true,
-		EMPTY_SOCKET_BLUE = true,
-		EMPTY_SOCKET_YELLOW = true,
 		ITEM_MOD_STAMINA_SHORT = true,
 		ITEM_MOD_AGILITY_SHORT = true,
 		ITEM_MOD_STRENGTH_SHORT = true,
@@ -32,6 +26,7 @@ local defaults = {
 		ITEM_MOD_PVP_POWER_SHORT = true,
 		ITEM_MOD_RESILIENCE_RATING_SHORT = true,
 		resistance = true,
+		sockets = true,
 		
 		smartarmor = true,
 		cloth = true,
@@ -198,37 +193,12 @@ local options = {
 			order = 250,
 		},
 		
-		header4 = {type = "header", name = "Sockets", order = 270},
+		header4 = {type = "header", name = "Tertiary Stats", order = 270},
 		
-		metasockets = {
+		sockets = {
 			type = "toggle",
-			name = "Meta Sockets",
+			name = "Gem Sockets",
 			order = 280,
-		},
-		prismaticsockets = {
-			type = "toggle",
-			name = "Prismatic Sockets",
-			order = 290,
-		},
-		cogwheelsockets = {
-			type = "toggle",
-			name = "Cogwheel Sockets",
-			order = 300,
-		},
-		redsockets = {
-			type = "toggle",
-			name = "Red Sockets",
-			order = 310,
-		},
-		bluesockets = {
-			type = "toggle",
-			name = "Blue Sockets",
-			order = 320,
-		},
-		yellowsockets = {
-			type = "toggle",
-			name = "Yellow Sockets",
-			order = 330,
 		},
 		
 		header5 = {type = "header", name = "Hide When Stat Exists", order = 340},
@@ -335,6 +305,8 @@ end
 local function statIsEnabled(name)
 	if strmatch(name,"RESISTANCE_SHORT") then
 		return SimpleStats.db.profile.resistance
+	elseif strmatch(name, "EMPTY_SOCKET") then
+		return SimpleStats.db.profile.sockets
 	else
 		return SimpleStats.db.profile[name]
 	end
