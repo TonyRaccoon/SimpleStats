@@ -10,7 +10,7 @@ TODO:
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, curStats, newStats, invTypes, order
 
-local defaults = {
+local defaults = {											-- Default settings
 	profile = {
 		RESISTANCE0_NAME = false,
 		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = false,
@@ -42,7 +42,7 @@ local defaults = {
 	}
 }
 
-local options = {
+local options = {											-- Settings GUI table
 	name = "SimpleStats",
 	handler = SimpleStats,
 	type = "group",
@@ -214,14 +214,14 @@ local options = {
 	}
 }
 
-function SimpleStats:get(i)
+function SimpleStats:get(i)									-- Getter function for settings, used by options table
 	return self.db.profile[i[1]]
 end
-function SimpleStats:set(i,v)
+function SimpleStats:set(i,v)								-- Setter function for settings, used by options table
 	self.db.profile[i[1]] = v
 end
 
-function SimpleStats:ChatCommand(input)
+function SimpleStats:ChatCommand(input)						-- Chat command handler
 	input = input:trim()
 	if not input or input == "" then
 		InterfaceOptionsFrame_OpenToCategory(SimpleStats.optionsFrame)
@@ -239,7 +239,7 @@ function SimpleStats:ChatCommand(input)
 	end
 end
 
-function SimpleStats:SortStats(changed_stats)
+function SimpleStats:SortStats(changed_stats)				-- Takes a table of stat changes, returns a new table sorted by logical stat order and with positives first
 	local increased_stats = {} -- positives
 	local decreased_stats = {} -- negatives
 	local final = {} -- final
@@ -277,11 +277,7 @@ function SimpleStats:SortStats(changed_stats)
 	return final
 end
 
-function SimpleStats:ResetTooltip()
-	
-end
-
-function SimpleStats:StatIsEnabled(name)
+function SimpleStats:StatIsEnabled(name)					-- Returns whether the given stat should be shown. Resistances and gem sockets are handled specially
 	if strmatch(name,"RESISTANCE_SHORT") then
 		return SimpleStats.db.profile.resistance
 	elseif strmatch(name, "EMPTY_SOCKET") then
@@ -291,7 +287,7 @@ function SimpleStats:StatIsEnabled(name)
 	end
 end
 
-function SimpleStats:PrintStats(tooltip, tnew,tcur,tcur2)
+function SimpleStats:PrintStats(tooltip, tnew,tcur,tcur2)	-- Takes a tooltip, new stats, and existing stats (one or two tables) and prints the stat change
 	local tchanged = {}
 	
 	if tcur2 then -- Comparing two existing items, so merge tcur2 into tcur
@@ -349,7 +345,7 @@ function SimpleStats:PrintStats(tooltip, tnew,tcur,tcur2)
 	end
 end
 
-function SimpleStats:HasTwoSlots(loc)
+function SimpleStats:HasTwoSlots(loc)						-- Returns whether the given INVTYPE has a sibling slot (ring, trinket, one-handed weapon)
 	if (loc == "INVTYPE_TRINKET" or loc == "INVTYPE_FINGER" or loc == "INVTYPE_WEAPON") then
 		return true
 	else
@@ -357,7 +353,7 @@ function SimpleStats:HasTwoSlots(loc)
 	end
 end
 
-function SimpleStats:GetCurrentStats(link)
+function SimpleStats:GetCurrentStats(link)					-- Returns the stats for the given itemlink
 	if (link == nil) then
 		return {}
 	else
@@ -365,7 +361,7 @@ function SimpleStats:GetCurrentStats(link)
 	end
 end
 
-function SimpleStats:CheckWeaponType(weaponType)
+function SimpleStats:CheckWeaponType(weaponType)			-- Determines whether this weapon type should have stats printed for it (taking into account settings)
 	local _,class = UnitClass("player")
 	local specSlot = GetSpecialization()
 	local usability, specID
@@ -399,7 +395,7 @@ function SimpleStats:CheckWeaponType(weaponType)
 	end
 end
 
-function SimpleStats:CheckArmorType(armorType)
+function SimpleStats:CheckArmorType(armorType)				-- Determines whether this armor type should have stats printed for it (taking into account settings)
 	local _,class = UnitClass("player")
 	local level = UnitLevel("player")
 	local usability
@@ -425,7 +421,7 @@ function SimpleStats:CheckArmorType(armorType)
 	end
 end
 
-function SimpleStats:HandleTooltip(self, ...)
+function SimpleStats:HandleTooltip(self, ...)				-- Tooltip handler, parses a tooltip and modifies it with the stat changes
 	local name, item = self:GetItem()
 	if item then -- If this is an item tooltip
 		local _,link,rarity,_,_,type,subtype,_,loc = GetItemInfo(item)
@@ -542,7 +538,7 @@ function SimpleStats:HandleTooltip(self, ...)
 	end
 end
 
-function SimpleStats:SetupTables()
+function SimpleStats:SetupTables()							-- Sets up all of the utility/data tables used by the addon
 	-- Maps between INVTYPEs and slot IDs
 	invTypes = {
 		INVTYPE_HEAD = 1,
@@ -998,7 +994,7 @@ function SimpleStats:SetupTables()
 	}
 end
 
-function SimpleStats:HideBlizzComparison(self) -- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
+function SimpleStats:HideBlizzComparison(self)				-- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
 	local old = self.SetHyperlinkCompareItem
 	self.SetHyperlinkCompareItem = function(self, link, level, shift, main, ...)
 		main = nil
@@ -1006,7 +1002,7 @@ function SimpleStats:HideBlizzComparison(self) -- Copied from OldComparison - ht
 	end
 end
 
-function SimpleStats:OnInitialize()
+function SimpleStats:OnInitialize()							-- Runs when addon is initialized
 	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", defaults, "Default")
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats", options)
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats","SimpleStats")
@@ -1043,7 +1039,7 @@ end
 
 --- Misc Lua Functions ---
 
-if not deepcopy then
+if not deepcopy then			-- Clones a table with a new reference
 function deepcopy(object)
 	local lookup_table = {}
 	local function _copy(object)
@@ -1062,7 +1058,7 @@ function deepcopy(object)
 	return _copy(object)
 end
 end
-if not print_r then
+if not print_r then				-- Debug function to print the contents of a table
 function print_r ( t ) 
     local print_r_cache={}
     local function sub_print_r(t,indent)
@@ -1088,13 +1084,13 @@ function print_r ( t )
     sub_print_r(t,"  ")
 end
 end
-function __genOrderedIndex(t)
+function __genOrderedIndex(t)	-- Used by orderedNext()
     local orderedIndex = {}
     for key in pairs(t) do table.insert( orderedIndex, key ) end
     table.sort( orderedIndex )
     return orderedIndex
 end
-function orderedNext(t, state)
+function orderedNext(t, state)	-- Used by orderedPairs()
     if state == nil then
         t.__orderedIndex = __genOrderedIndex( t )
         key = t.__orderedIndex[1]
@@ -1110,6 +1106,6 @@ function orderedNext(t, state)
     t.__orderedIndex = nil
     return
 end
-function orderedPairs(t)
+function orderedPairs(t)		-- Same as pairs(table), but keys are returned sorted by key (alphabetically/numerically) instead of whatever order lua wants
     return orderedNext, t, nil
 end
