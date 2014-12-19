@@ -239,10 +239,6 @@ function SimpleStats:ChatCommand(input)
 	end
 end
 
-function SimpleStats:ConvertResistanceName(name)
-	return resistanceNames[name] or name
-end
-
 function SimpleStats:SortStats(changed_stats)
 	local increased_stats = {} -- positives
 	local decreased_stats = {} -- negatives
@@ -328,7 +324,7 @@ function SimpleStats:PrintStats(tnew,tcur,tcur2)
 		name = v[1]
 		
 		-- If it's a resistance, the localized strings are wrong and need to be converted to a second style to work
-		convertedName = self:ConvertResistanceName(name)
+		convertedName = resistanceNames[name] or name
 		
 		val = v[2]+0
 		if self:StatIsEnabled(name) then
