@@ -1,12 +1,3 @@
---[[
-TODO:
-	Add class default profiles
-	Fix no stats in recipe tooltips
-	Fix weapon type localization
-	Don't show comparison for second ring/trinket/weapon when hovering over first equipped one
-	When hiding comparison when a stat is present, actually show it if there's still a stat you're not hiding (so if you're hiding int, and you look at the seal of wrynn, it shows comparisons because it has str/agi as well)
-]]
-
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
 local defaults = {											-- Default settings
