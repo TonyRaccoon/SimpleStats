@@ -56,7 +56,7 @@ local options = {
 		
 		usableweapons = {
 			type = "select",
-			name = "Show on weapons",
+			name = "Show on weapon types:",
 			values = {"All", "Only usable", "Only useful to current class", "Only useful to current specialization"},
 			order = 20,
 			width = "double",
@@ -64,7 +64,7 @@ local options = {
 		
 		usablearmor = {
 			type = "select",
-			name = "Show on armor",
+			name = "Show on armor types:",
 			values = {"All", "Only wearable", "Only useful to current class"},
 			order = 30,
 			width = "double",
@@ -376,13 +376,13 @@ local function checkWeaponType(weaponType)
 		return false
 	end
 	
-	if SimpleStats.db.profile.usableweapons == 1 then -- Show all weapons
+	if SimpleStats.db.profile.usableweapons == 1 then -- Show on all weapons
 		return true
-	elseif SimpleStats.db.profile.usableweapons == 2 then -- Show usable weapons
+	elseif SimpleStats.db.profile.usableweapons == 2 then -- Show on usable weapons
 		return usability >= 1
-	elseif SimpleStats.db.profile.usableweapons == 3 then -- Show useful weapons
+	elseif SimpleStats.db.profile.usableweapons == 3 then -- Show on useful weapons
 		return usability >= 2
-	elseif SimpleStats.db.profile.usableweapons == 4 then -- Show weapons useful to current spec
+	elseif SimpleStats.db.profile.usableweapons == 4 then -- Show on weapons useful to current spec
 		return usability == 3 or (usability == 2 and not specID)
 	end
 end
@@ -538,6 +538,7 @@ local function handleTooltip(self, ...)
 end
 
 local function setupTables()
+	-- Maps between INVTYPEs and slot IDs
 	invTypes = {
 		INVTYPE_HEAD = 1,
 		INVTYPE_NECK = 2,
@@ -564,7 +565,8 @@ local function setupTables()
 		INVTYPE_TABARD = 19,
 	}
 	
-	local order_inverted = {
+	-- Define the order that stats should appear in in tooltips
+	local order_inverse = {
 		"RESISTANCE0_NAME",
 		"ITEM_MOD_DAMAGE_PER_SECOND_SHORT",
 		"ITEM_MOD_STAMINA_SHORT",
@@ -600,18 +602,13 @@ local function setupTables()
 		"ITEM_MOD_CR_STURDINESS_SHORT",
 	}
 	
-	-- The following stats should not show a number (+Indestructible instead of +57 Indestructible, for example)
-	noNumberStats = {
-		ITEM_MOD_CR_STURDINESS_SHORT = true,
-	}
-	
+	-- Convert order table to n -> "STAT_NAME" instead of "STAT_NAME" -> n
 	order = {}
-	for k,v in pairs(order_inverted) do
+	for k,v in pairs(order_inverse) do
 		order[v] = k
 	end
 	
-	
-	-- Create mapping between two different resistance names used
+	-- Create mapping between the two different resistance names used
 	resistanceNames = {
 		ITEM_MOD_HOLY_RESISTANCE_SHORT   = "RESISTANCE1_NAME",
 		ITEM_MOD_FIRE_RESISTANCE_SHORT   = "RESISTANCE2_NAME",
@@ -627,11 +624,17 @@ local function setupTables()
 		RESISTANCE6_NAME                 = "ITEM_MOD_ARCANE_RESISTANCE_SHORT"
 	}
 	
+	-- The following stats should not show a number (+Indestructible instead of +57 Indestructible, for example)
+	noNumberStats = {
+		ITEM_MOD_CR_STURDINESS_SHORT = true,
+	}
+	
 	-- Extract localized armor and weapon type strings from Auction House functions (no global strings for them are available)
 	local itemClasses = {GetAuctionItemClasses()}
 	local weaponTypes = {GetAuctionItemSubClasses(1)}
 	local armorTypes = {GetAuctionItemSubClasses(2)}
 	
+	-- Define the order weapon names appear in GetAuctionItemSubClasses()
 	local names = {
 		weapons = {
 			"onehandedaxes",
@@ -663,6 +666,7 @@ local function setupTables()
 		}
 	}
 	
+	-- Create the final localized string array structure
 	localized = {
 		weapon_name = itemClasses[1],
 		armor_name = itemClasses[2],
@@ -673,19 +677,22 @@ local function setupTables()
 		}
 	}
 	
+	-- Merge localized and english weapon names
 	for i,name in pairs(names.weapons) do
 		localized.weapons[name] = weaponTypes[i]
 	end
 	
+	-- Merge localized and english armor names
 	for i,name in pairs(names.armor) do
 		localized.armor[name] = armorTypes[i]
 	end
 	
+	-- Create inverse table for localized -> english conversion
 	for engname,locname in pairs(localized.armor) do
 		localized.reverse.armor[locname] = engname
 	end
 	
-	-- 1=Usable, 2=Useful
+	-- 3=Useful for spec, 2=Useful for class, 1=Usable
 	usableWeapons = {
 		WARLOCK = {
 			[localized.weapons.onehandedswords] = 3,
