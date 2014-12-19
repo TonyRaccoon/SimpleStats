@@ -31,7 +31,6 @@ local defaults = {											-- Default settings
 		minquality = 1
 	}
 }
-
 local options = {											-- Settings GUI table
 	name = "SimpleStats",
 	handler = SimpleStats,
@@ -203,7 +202,6 @@ local options = {											-- Settings GUI table
 		}
 	}
 }
-
 function SimpleStats:get(i)									-- Getter function for settings, used by options table
 	return self.db.profile[i[1]]
 end
@@ -230,37 +228,34 @@ function SimpleStats:ChatCommand(input)						-- Chat command handler
 end
 
 function SimpleStats:SortStats(changed_stats)				-- Takes a table of stat changes, returns a new table sorted by logical stat order and with positives first
-	local increased_stats = {} -- positives
-	local decreased_stats = {} -- negatives
-	local final = {} -- final
+	local increased_stats = {}	-- positive increases
+	local decreased_stats = {}	-- negative increases
+	local final = {}			-- final returned table
 	
-	-- Sort into two piles, positives and negatives
+	-- Sort into two tables, positives and negatives
 	for stat_name,stat_change in pairs(changed_stats) do
-		stat_change = stat_change+0
 		if stat_change > 0 then
-			table.insert(increased_stats,{stat_name,stat_change})
+			increased_stats[stat_name] = stat_change
 		elseif stat_change < 0 then
-			table.insert(decreased_stats,{stat_name,stat_change})
+			decreased_stats[stat_name] = stat_change
 		end
 	end
 	
 	-- Add the positive stat changes, in the correct position based on the 'order' table, to the final table
-	for k,v in pairs(increased_stats) do
-		local name = v[1]
-		local value = math.floor(v[2])
-		if self.order[name] then
-			local pos = self.order[name]
-			final[pos] = {name,value}
+	for stat_name,stat_change in pairs(increased_stats) do
+		stat_change = math.floor(stat_change)
+		if self.order[stat_name] then
+			local pos = self.order[stat_name]
+			final[pos] = {stat_name,stat_change}
 		end
 	end
 	
-	-- Finally, do the same thing for the negative stat changes, except offset them by 50 so they appear after the positive changes
-	for k,v in pairs(decreased_stats) do
-		local name = v[1]
-		local value = math.floor(v[2])
-		if self.order[name] then
-			local pos = self.order[name]+50
-			final[pos] = {name,value}
+	-- Finally, do the same thing for the negative stat changes, except offset them by #self.order so they always appear after the positive changes
+	for stat_name,stat_change in pairs(decreased_stats) do
+		stat_change = math.floor(stat_change)
+		if self.order[stat_name] then
+			local pos = self.order[stat_name] + self.order.count
+			final[pos] = {stat_name,stat_change}
 		end
 	end
 	
@@ -586,9 +581,15 @@ function SimpleStats:SetupTables()							-- Sets up all of the utility/data tabl
 	
 	-- Convert order table to "STAT_NAME" => index instead of "STAT_NAME"
 	self.order = {}
+	
+	local count = 0
 	for k,v in pairs(order_inverse) do
+		count = count+1
 		self.order[v] = k
 	end
+	
+	-- Store a count of items in self.order for later use in SortStats()
+	self.order.count = count
 	
 	-- Create mapping between the two different resistance names used
 	self.resistanceNames = {
@@ -1017,7 +1018,6 @@ function SimpleStats:OnInitialize()							-- Runs when addon is initialized
 end
 
 --- Misc Lua Functions ---
-
 if not deepcopy then			-- Clones a table with a new reference
 function deepcopy(object)
 	local lookup_table = {}
