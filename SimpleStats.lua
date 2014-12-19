@@ -7,7 +7,7 @@ TODO:
 	When hiding comparison when a stat is present, actually show it if there's still a stat you're not hiding (so if you're hiding int, and you look at the seal of wrynn, it shows comparisons because it has str/agi as well)
 ]]
 
-SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0")
+SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, curStats, newStats, invTypes, tooltip, order
 
 local defaults = {
@@ -239,11 +239,11 @@ function SimpleStats:ChatCommand(input)
 	end
 end
 
-local function convertResistanceName(name)
+function SimpleStats:ConvertResistanceName(name)
 	return resistanceNames[name] or name
 end
 
-local function sortStats(changed_stats)
+function SimpleStats:SortStats(changed_stats)
 	local increased_stats = {} -- positives
 	local decreased_stats = {} -- negatives
 	local final = {} -- final
@@ -281,11 +281,11 @@ local function sortStats(changed_stats)
 	return final
 end
 
-local function resetTooltip()
+function SimpleStats:ResetTooltip()
 	
 end
 
-local function statIsEnabled(name)
+function SimpleStats:StatIsEnabled(name)
 	if strmatch(name,"RESISTANCE_SHORT") then
 		return SimpleStats.db.profile.resistance
 	elseif strmatch(name, "EMPTY_SOCKET") then
@@ -295,7 +295,7 @@ local function statIsEnabled(name)
 	end
 end
 
-local function printStats(tnew,tcur,tcur2)
+function SimpleStats:PrintStats(tnew,tcur,tcur2)
 	local tchanged = {}
 	
 	if tcur2 then -- Comparing two existing items, so merge tcur2 into tcur
@@ -322,16 +322,16 @@ local function printStats(tnew,tcur,tcur2)
 		end
 	end
 	
-	local stats = sortStats(tchanged)
+	local stats = self:SortStats(tchanged)
 	
 	for k,v in orderedPairs(stats) do
 		name = v[1]
 		
 		-- If it's a resistance, the localized strings are wrong and need to be converted to a second style to work
-		convertedName = convertResistanceName(name)
+		convertedName = self:ConvertResistanceName(name)
 		
 		val = v[2]+0
-		if statIsEnabled(name) then
+		if self:StatIsEnabled(name) then
 			if (val > 0) then
 				if noNumberStats[convertedName] then
 					tooltip:AddLine("|cff00ff00+".._G[convertedName])
@@ -353,7 +353,7 @@ local function printStats(tnew,tcur,tcur2)
 	end
 end
 
-local function hasTwoSlots(loc)
+function SimpleStats:HasTwoSlots(loc)
 	if (loc == "INVTYPE_TRINKET" or loc == "INVTYPE_FINGER" or loc == "INVTYPE_WEAPON") then
 		return true
 	else
@@ -361,7 +361,7 @@ local function hasTwoSlots(loc)
 	end
 end
 
-local function getCurrentStats(link)
+function SimpleStats:GetCurrentStats(link)
 	if (link == nil) then
 		return {}
 	else
@@ -369,7 +369,7 @@ local function getCurrentStats(link)
 	end
 end
 
-local function checkWeaponType(weaponType)
+function SimpleStats:CheckWeaponType(weaponType)
 	local _,class = UnitClass("player")
 	local specSlot = GetSpecialization()
 	local usability, specID
@@ -403,7 +403,7 @@ local function checkWeaponType(weaponType)
 	end
 end
 
-local function checkArmorType(armorType)
+function SimpleStats:CheckArmorType(armorType)
 	local _,class = UnitClass("player")
 	local level = UnitLevel("player")
 	local usability
@@ -429,7 +429,7 @@ local function checkArmorType(armorType)
 	end
 end
 
-local function handleTooltip(self, ...)
+function SimpleStats:HandleTooltip(self, ...)
 	tooltip = self
 	local name, item = tooltip:GetItem()
 	if item then -- If this is an item tooltip
@@ -443,14 +443,14 @@ local function handleTooltip(self, ...)
 		
 		if type ~= localized.armor_name and type ~= localized.weapon_name then return end								-- If it's not armor or a weapon, quit
 		if rarity-1 < SimpleStats.db.profile.minquality then return end													-- If it's below the current quality threshold, quit
-		if type == localized.weapon_name and not checkWeaponType(subtype) then return end								-- If it's a weapon and doesn't match our weapon settings, quit
+		if type == localized.weapon_name and not SimpleStats:CheckWeaponType(subtype) then return end								-- If it's a weapon and doesn't match our weapon settings, quit
 		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end												-- Filter out shirts/tabards
 		
 		if type == localized.armor_name and subtype ~= localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then	-- Filter out disabled armor types (always show for Misc items and cloaks)
-			if not checkArmorType(subtype) then return end
+			if not SimpleStats:CheckArmorType(subtype) then return end
 		end
 		
-		if id == equipid and not hasTwoSlots(loc) then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
+		if id == equipid and not SimpleStats:HasTwoSlots(loc) then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
 		
 		local e1link = GetInventoryItemLink("player",invTypes[loc])
 		local e2link,firstloc
@@ -500,55 +500,55 @@ local function handleTooltip(self, ...)
 		
 		if loc == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
 			tooltip:AddLine("Trinket 1:")
-			curStats = getCurrentStats(e1link)
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(e1link)
+			SimpleStats:PrintStats(newStats,curStats)
 			tooltip:AddLine(" ")
 			tooltip:AddLine("Trinket 2:")
-			curStats = getCurrentStats(e2link)
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(e2link)
+			SimpleStats:PrintStats(newStats,curStats)
 			
 		elseif loc == "INVTYPE_FINGER" then -- If the item is a ring, show stat changes for both rings
 			tooltip:AddLine("Ring 1:")
-			curStats = getCurrentStats(e1link)
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(e1link)
+			SimpleStats:PrintStats(newStats,curStats)
 			tooltip:AddLine(" ")
 			tooltip:AddLine("Ring 2:")
-			curStats = getCurrentStats(e2link)
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(e2link)
+			SimpleStats:PrintStats(newStats,curStats)
 			
 		elseif loc == "INVTYPE_WEAPON" then -- If the item is a 1H weapon, show stat changes for both weapon slots
 			if curSoloEquipped==false then tooltip:AddLine("Weapon 1:") end
-			curStats = getCurrentStats(e1link)
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(e1link)
+			SimpleStats:PrintStats(newStats,curStats)
 			
 			if curSoloEquipped==false then -- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
 				tooltip:AddLine(" ")
 				tooltip:AddLine("Weapon 2:")
-				curStats = getCurrentStats(e2link)
-				printStats(newStats,curStats)
+				curStats = SimpleStats:GetCurrentStats(e2link)
+				SimpleStats:PrintStats(newStats,curStats)
 			end
 			
 		elseif (soloEquipped==true) and equipid2 then -- Looking at a 2H and two 1H are equipped, so combine their stats
-			curStats = getCurrentStats(e1link)
-			curStats2 = getCurrentStats(e2link)
-			printStats(newStats,curStats,curStats2)
+			curStats = SimpleStats:GetCurrentStats(e1link)
+			curStats2 = SimpleStats:GetCurrentStats(e2link)
+			SimpleStats:PrintStats(newStats,curStats,curStats2)
 		
 		elseif invTypes[loc] == 17 and firstloc == "INVTYPE_2HWEAPON" then -- If comparing an offhand and a 2h weapon, don't act like both can be equipped
-			curStats = getCurrentStats(GetInventoryItemLink("player",16))
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16))
+			SimpleStats:PrintStats(newStats,curStats)
 			
 		elseif loc == "INVTYPE_HOLDABLE" and curSoloEquipped==true then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
-			curStats = getCurrentStats(GetInventoryItemLink("player",16))
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16))
+			SimpleStats:PrintStats(newStats,curStats)
 			
 		elseif id ~= equipid then -- else, but only if the item isn't already equipped
-			curStats = getCurrentStats(e1link)
-			printStats(newStats,curStats)
+			curStats = SimpleStats:GetCurrentStats(e1link)
+			SimpleStats:PrintStats(newStats,curStats)
 		end
 	end
 end
 
-local function setupTables()
+function SimpleStats:SetupTables()
 	-- Maps between INVTYPEs and slot IDs
 	invTypes = {
 		INVTYPE_HEAD = 1,
@@ -1004,7 +1004,7 @@ local function setupTables()
 	}
 end
 
-local function hideBlizzComparison(self) -- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
+function SimpleStats:HideBlizzComparison(self) -- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
 	local old = self.SetHyperlinkCompareItem
 	self.SetHyperlinkCompareItem = function(self, link, level, shift, main, ...)
 		main = nil
@@ -1033,15 +1033,18 @@ function SimpleStats:OnInitialize()
 		options.args.shields.disabled = true
 	end
 	
-	setupTables()
+	self:SetupTables()
 	
-	GameTooltip:HookScript("OnTooltipSetItem",handleTooltip)
-	ItemRefTooltip:HookScript("OnTooltipSetItem",handleTooltip)
+	--GameTooltip:HookScript("OnTooltipSetItem",handleTooltip)
+	--ItemRefTooltip:HookScript("OnTooltipSetItem",handleTooltip)
 	
-	hideBlizzComparison(ShoppingTooltip1)
-	hideBlizzComparison(ShoppingTooltip2)
-	hideBlizzComparison(ItemRefShoppingTooltip1)
-	hideBlizzComparison(ItemRefShoppingTooltip2)
+	self:HookScript(GameTooltip, "OnTooltipSetItem", "HandleTooltip")
+	self:HookScript(ItemRefTooltip, "OnTooltipSetItem", "HandleTooltip")
+	
+	self:HideBlizzComparison(ShoppingTooltip1)
+	self:HideBlizzComparison(ShoppingTooltip2)
+	self:HideBlizzComparison(ItemRefShoppingTooltip1)
+	self:HideBlizzComparison(ItemRefShoppingTooltip2)
 end
 
 --- Misc Lua Functions ---
