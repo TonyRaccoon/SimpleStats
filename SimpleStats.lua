@@ -8,7 +8,7 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0")
-local localized, resistanceNames, noNumberStats, usableWeapons, curStats, newStats, invTypes, tooltip, order
+local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, curStats, newStats, invTypes, tooltip, order
 
 local defaults = {
 	profile = {
@@ -29,14 +29,8 @@ local defaults = {
 		resistance = true,
 		sockets = true,
 		
-		smartarmor = true,
-		cloth = true,
-		leather = true,
-		mail = true,
-		plate = true,
-		shields = true,
-		
 		usableweapons = 4,
+		usablearmor = 3,
 		hideagility = false,
 		hidestrength = false,
 		hideintellect = false,
@@ -68,38 +62,12 @@ local options = {
 			width = "double",
 		},
 		
-		header1 = {type = "header", name = "Armor Types", order = 30},
-		
-		smartarmor = {
-			type = "toggle",
-			name = "Automatic based on class",
-			order = 35,
-			width = "full",
-		},
-		cloth = {
-			type = "toggle",
-			name = "Show on cloth",
-			order = 40,
-		},
-		leather = {
-			type = "toggle",
-			name = "Show on leather",
-			order = 50,
-		},
-		mail = {
-			type = "toggle",
-			name = "Show on mail",
-			order = 60,
-		},
-		plate = {
-			type = "toggle",
-			name = "Show on plate",
-			order = 70,
-		},
-		shields = {
-			type = "toggle",
-			name = "Show on shields",
-			order = 80,
+		usablearmor = {
+			type = "select",
+			name = "Show on armor",
+			values = {"All", "Only wearable", "Only useful to current class"},
+			order = 30,
+			width = "double",
 		},
 		
 		header2 = {type = "header", name = "Primary Stats", order = 90},
@@ -236,14 +204,6 @@ function SimpleStats:get(i)
 end
 function SimpleStats:set(i,v)
 	self.db.profile[i[1]] = v
-	
-	if i[1] == "smartarmor" then
-		options.args.cloth.disabled = v
-		options.args.leather.disabled = v
-		options.args.mail.disabled = v
-		options.args.plate.disabled = v
-		options.args.shields.disabled = v
-	end
 end
 
 function SimpleStats:ChatCommand(input)
@@ -427,26 +387,30 @@ local function checkWeaponType(weaponType)
 	end
 end
 
-local function checkArmorType(type)
-	_,c = UnitClass("player")
-	l = UnitLevel("player")
+local function checkArmorType(armorType)
+	local _,class = UnitClass("player")
+	local level = UnitLevel("player")
+	local usability
 	
-	if type == localized.armor.cloth then
-		if c == "PRIEST" or c == "MAGE" or c == "WARLOCK"	then return true end
-	elseif type == localized.armor.leather then
-		if (c == "HUNTER" or c == "SHAMAN") and l < 40		then return true end
-		if c == "ROGUE" or c == "MONK" or c == "DRUID"		then return true end
-	elseif type == localized.armor.mail then
-		if (c == "HUNTER" or c == "SHAMAN") and l >= 40		then return true end
-		if (c == "WARRIOR" or c == "PALADIN") and l < 40	then return true end
-	elseif type == localized.armor.plate then
-		if (c == "WARRIOR" or c == "PALADIN") and l >= 40	then return true end
-		if c == "DEATHKNIGHT"								then return true end
-	elseif type == localized.armor.shields then
-		if c == "WARRIOR" or c == "PALADIN" or c == "SHAMAN" then return true end
+	if usableArmor[class]["pre40"] and level < 40 then
+		usability = usableArmor[class]["pre40"][armorType]
+	elseif usableArmor[class]["pre40"] then
+		usability = usableArmor[class]["post40"][armorType]
+	else
+		usability = usableArmor[class][armorType]
 	end
 	
-	return false
+	if not usability and SimpleStats.db.profile.usablearmor > 1 then
+		return false
+	end
+	
+	if SimpleStats.db.profile.usablearmor == 1 then -- Show on all armor
+		return true
+	elseif SimpleStats.db.profile.usablearmor == 2 then -- Show on wearable armor
+		return usability >= 1
+	elseif SimpleStats.db.profile.usablearmor == 3 then -- Show on useful armor
+		return usability == 2
+	end
 end
 
 local function handleTooltip(self, ...)
@@ -937,6 +901,85 @@ local function setupTables()
 			[localized.weapons.twohandedmaces]	= 3,
 			[localized.weapons.twohandedswords]	= 3,
 			[localized.weapons.polearms]		= 3,
+		}
+	}
+	
+	-- 2=Useful for class, 1=Usable
+	usableArmor = {
+		WARLOCK = {
+			[localized.armor.cloth]		= 2,
+		},
+		MAGE = {
+			[localized.armor.cloth]		= 2,
+		},
+		PRIEST = {
+			[localized.armor.cloth]		= 2,
+		},
+		DRUID = {
+			[localized.armor.cloth]		= 1,
+			[localized.armor.leather]	= 2,
+		},
+		ROGUE = {
+			[localized.armor.cloth]		= 1,
+			[localized.armor.leather]	= 2,
+		},
+		MONK = {
+			[localized.armor.cloth]		= 1,
+			[localized.armor.leather]	= 2,
+		},
+		SHAMAN = {
+			["pre40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 2,
+			},
+			["post40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 1,
+				[localized.armor.mail]		= 2,
+			},
+		},
+		HUNTER = {
+			["pre40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 2,
+			},
+			["post40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 1,
+				[localized.armor.mail]		= 2,
+			},
+		},
+		WARRIOR = {
+			["pre40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 1,
+				[localized.armor.mail]		= 2,
+			},
+			["post40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 1,
+				[localized.armor.mail]		= 1,
+				[localized.armor.plate]		= 2,
+			},
+		},
+		PALADIN = {
+			["pre40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 1,
+				[localized.armor.mail]		= 2,
+			},
+			["post40"] = {
+				[localized.armor.cloth]		= 1,
+				[localized.armor.leather]	= 1,
+				[localized.armor.mail]		= 1,
+				[localized.armor.plate]		= 2,
+			},
+		},
+		DEATHKNIGHT = {
+			[localized.armor.cloth]		= 1,
+			[localized.armor.leather]	= 1,
+			[localized.armor.mail]		= 1,
+			[localized.armor.plate]		= 2,
 		}
 	}
 end
