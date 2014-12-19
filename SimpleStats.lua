@@ -8,7 +8,7 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
-local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, curStats, newStats, invTypes, tooltip, order
+local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, curStats, newStats, invTypes, order
 
 local defaults = {
 	profile = {
@@ -291,7 +291,7 @@ function SimpleStats:StatIsEnabled(name)
 	end
 end
 
-function SimpleStats:PrintStats(tnew,tcur,tcur2)
+function SimpleStats:PrintStats(tooltip, tnew,tcur,tcur2)
 	local tchanged = {}
 	
 	if tcur2 then -- Comparing two existing items, so merge tcur2 into tcur
@@ -426,10 +426,8 @@ function SimpleStats:CheckArmorType(armorType)
 end
 
 function SimpleStats:HandleTooltip(self, ...)
-	tooltip = self
-	local name, item = tooltip:GetItem()
+	local name, item = self:GetItem()
 	if item then -- If this is an item tooltip
-		
 		local _,link,rarity,_,_,type,subtype,_,loc = GetItemInfo(item)
 		
 		if not link then return end -- Workaround for obscure bug popping up saying link is nil
@@ -492,54 +490,54 @@ function SimpleStats:HandleTooltip(self, ...)
 				return false end
 		end
 		
-		tooltip:AddLine(" ")
+		self:AddLine(" ")
 		
 		if loc == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
-			tooltip:AddLine("Trinket 1:")
+			self:AddLine("Trinket 1:")
 			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(newStats,curStats)
-			tooltip:AddLine(" ")
-			tooltip:AddLine("Trinket 2:")
+			SimpleStats:PrintStats(self, newStats,curStats)
+			self:AddLine(" ")
+			self:AddLine("Trinket 2:")
 			curStats = SimpleStats:GetCurrentStats(e2link)
-			SimpleStats:PrintStats(newStats,curStats)
+			SimpleStats:PrintStats(self, newStats,curStats)
 			
 		elseif loc == "INVTYPE_FINGER" then -- If the item is a ring, show stat changes for both rings
-			tooltip:AddLine("Ring 1:")
+			self:AddLine("Ring 1:")
 			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(newStats,curStats)
-			tooltip:AddLine(" ")
-			tooltip:AddLine("Ring 2:")
+			SimpleStats:PrintStats(self, newStats,curStats)
+			self:AddLine(" ")
+			self:AddLine("Ring 2:")
 			curStats = SimpleStats:GetCurrentStats(e2link)
-			SimpleStats:PrintStats(newStats,curStats)
+			SimpleStats:PrintStats(self, newStats,curStats)
 			
 		elseif loc == "INVTYPE_WEAPON" then -- If the item is a 1H weapon, show stat changes for both weapon slots
-			if curSoloEquipped==false then tooltip:AddLine("Weapon 1:") end
+			if curSoloEquipped==false then self:AddLine("Weapon 1:") end
 			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(newStats,curStats)
+			SimpleStats:PrintStats(self, newStats,curStats)
 			
 			if curSoloEquipped==false then -- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
-				tooltip:AddLine(" ")
-				tooltip:AddLine("Weapon 2:")
+				self:AddLine(" ")
+				self:AddLine("Weapon 2:")
 				curStats = SimpleStats:GetCurrentStats(e2link)
-				SimpleStats:PrintStats(newStats,curStats)
+				SimpleStats:PrintStats(self, newStats,curStats)
 			end
 			
 		elseif (soloEquipped==true) and equipid2 then -- Looking at a 2H and two 1H are equipped, so combine their stats
 			curStats = SimpleStats:GetCurrentStats(e1link)
 			curStats2 = SimpleStats:GetCurrentStats(e2link)
-			SimpleStats:PrintStats(newStats,curStats,curStats2)
+			SimpleStats:PrintStats(self, newStats,curStats,curStats2)
 		
 		elseif invTypes[loc] == 17 and firstloc == "INVTYPE_2HWEAPON" then -- If comparing an offhand and a 2h weapon, don't act like both can be equipped
 			curStats = SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16))
-			SimpleStats:PrintStats(newStats,curStats)
+			SimpleStats:PrintStats(self, newStats,curStats)
 			
 		elseif loc == "INVTYPE_HOLDABLE" and curSoloEquipped==true then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
 			curStats = SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16))
-			SimpleStats:PrintStats(newStats,curStats)
+			SimpleStats:PrintStats(self, newStats,curStats)
 			
 		elseif id ~= equipid then -- else, but only if the item isn't already equipped
 			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(newStats,curStats)
+			SimpleStats:PrintStats(self, newStats,curStats)
 		end
 	end
 end
