@@ -24,6 +24,8 @@ local defaults = {
 		ITEM_MOD_MASTERY_RATING_SHORT = true,
 		ITEM_MOD_CR_MULTISTRIKE_SHORT = true,
 		ITEM_MOD_VERSATILITY = true,
+		ITEM_MOD_CR_LIFESTEAL_SHORT = true,
+		ITEM_MOD_CR_AVOIDANCE_SHORT = true,
 		ITEM_MOD_SPELL_POWER_SHORT = true,
 		ITEM_MOD_PVP_POWER_SHORT = true,
 		ITEM_MOD_RESILIENCE_RATING_SHORT = true,
@@ -177,6 +179,16 @@ local options = {
 			type = "toggle",
 			name = "Indestructible",
 			order = 290,
+		},
+		ITEM_MOD_CR_LIFESTEAL_SHORT = {
+			type = "toggle",
+			name = "Leech",
+			order = 300,
+		},
+		ITEM_MOD_CR_AVOIDANCE_SHORT = {
+			type = "toggle",
+			name = "Avoidance",
+			order = 310,
 		},
 		
 		header5 = {type = "header", name = "Hide When Stat Exists", order = 340},
@@ -603,6 +615,8 @@ local function setupTables()
 		"EMPTY_SOCKET_BLUE",
 		"EMPTY_SOCKET_YELLOW",
 		"ITEM_MOD_CR_STURDINESS_SHORT",
+		"ITEM_MOD_CR_LIFESTEAL_SHORT",
+		"ITEM_MOD_CR_AVOIDANCE_SHORT",
 	}
 	
 	-- Convert order table to n -> "STAT_NAME" instead of "STAT_NAME" -> n
