@@ -243,41 +243,41 @@ local function convertResistanceName(name)
 	return resistanceNames[name] or name
 end
 
-local function sortStats(t)
-	local tp = {} -- positives
-	local tn = {} -- negatives
-	local tf = {} -- final
+local function sortStats(changed_stats)
+	local increased_stats = {} -- positives
+	local decreased_stats = {} -- negatives
+	local final = {} -- final
 	
 	-- Sort into two piles, positives and negatives
-	for k,v in pairs(t) do
-		v = v+0
-		if v > 0 then
-			table.insert(tp,{k,v})
-		elseif v < 0 then
-			table.insert(tn,{k,v})
+	for stat_name,stat_change in pairs(changed_stats) do
+		stat_change = stat_change+0
+		if stat_change > 0 then
+			table.insert(increased_stats,{stat_name,stat_change})
+		elseif stat_change < 0 then
+			table.insert(decreased_stats,{stat_name,stat_change})
 		end
 	end
 	
 	-- Now sort each pile by stat name
-	for k,v in pairs(tp) do
+	for k,v in pairs(increased_stats) do
 		local name = v[1]
 		local value = math.floor(v[2])
 		if order[name] then
 			local pos = order[name]
-			tf[pos] = {name,value}
+			final[pos] = {name,value}
 		end
 	end
 	
-	for k,v in pairs(tn) do
+	for k,v in pairs(decreased_stats) do
 		local name = v[1]
 		local value = math.floor(v[2])
 		if order[name] then
 			local pos = order[name]+30
-			tf[pos] = {name,value}
+			final[pos] = {name,value}
 		end
 	end
 	
-	return tf
+	return final
 end
 
 local function resetTooltip()
@@ -614,7 +614,7 @@ local function setupTables()
 		"ITEM_MOD_CR_AVOIDANCE_SHORT",
 	}
 	
-	-- Convert order table to n -> "STAT_NAME" instead of "STAT_NAME" -> n
+	-- Convert order table to "STAT_NAME" => index instead of "STAT_NAME"
 	order = {}
 	for k,v in pairs(order_inverse) do
 		order[v] = k
