@@ -212,18 +212,18 @@ end
 function SimpleStats:ChatCommand(input)				-- Chat command handler
 	input = input:trim()
 	if not input or input == "" then
-		InterfaceOptionsFrame_OpenToCategory(SimpleStats.optionsFrame)
-		InterfaceOptionsFrame_OpenToCategory(SimpleStats.optionsFrame)
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
+		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
 	
 	elseif (input == "v" or input == "ver" or input == "version") then
 		self:Print("Version: "..GetAddOnMetadata("SimpleStats","Version"))
 	
 	elseif (input == "profile" or input == "profiles") then
-		InterfaceOptionsFrame_OpenToCategory(SimpleStats.profileFrame)
-		InterfaceOptionsFrame_OpenToCategory(SimpleStats.profileFrame)
+		InterfaceOptionsFrame_OpenToCategory(self.profileFrame)
+		InterfaceOptionsFrame_OpenToCategory(self.profileFrame)
 	
 	else
-		LibStub("AceConfigCmd-3.0").HandleCommand(SimpleStats, "ss", "SimpleStats", input)
+		LibStub("AceConfigCmd-3.0").HandleCommand(self, "ss", "SimpleStats", input)
 	end
 end
 
@@ -264,11 +264,11 @@ end
 
 function SimpleStats:StatIsEnabled(statName)		-- Returns whether the given stat should be shown. Resistances and gem sockets are handled specially
 	if strmatch(statName,"RESISTANCE_SHORT") then
-		return SimpleStats.db.profile.resistance
+		return self.db.profile.resistance
 	elseif strmatch(statName, "EMPTY_SOCKET") then
-		return SimpleStats.db.profile.sockets
+		return self.db.profile.sockets
 	else
-		return SimpleStats.db.profile[statName]
+		return self.db.profile[statName]
 	end
 end
 
@@ -365,17 +365,17 @@ function SimpleStats:CheckWeaponType(weaponType)	-- Determines whether this weap
 		-- we don't have a spec, weapon is usable
 	end
 	
-	if not usability and SimpleStats.db.profile.usableweapons > 1 then
+	if not usability and self.db.profile.usableweapons > 1 then
 		return false
 	end
 	
-	if SimpleStats.db.profile.usableweapons == 1 then -- Show on all weapons
+	if self.db.profile.usableweapons == 1 then -- Show on all weapons
 		return true
-	elseif SimpleStats.db.profile.usableweapons == 2 then -- Show on usable weapons
+	elseif self.db.profile.usableweapons == 2 then -- Show on usable weapons
 		return usability >= 1
-	elseif SimpleStats.db.profile.usableweapons == 3 then -- Show on useful weapons
+	elseif self.db.profile.usableweapons == 3 then -- Show on useful weapons
 		return usability >= 2
-	elseif SimpleStats.db.profile.usableweapons == 4 then -- Show on weapons useful to current spec
+	elseif self.db.profile.usableweapons == 4 then -- Show on weapons useful to current spec
 		return usability == 3 or (usability == 2 and not specID)
 	end
 end
@@ -393,15 +393,15 @@ function SimpleStats:CheckArmorType(armorType)		-- Determines whether this armor
 		usability = self.usableArmor[class][armorType]
 	end
 	
-	if not usability and SimpleStats.db.profile.usablearmor > 1 then
+	if not usability and self.db.profile.usablearmor > 1 then
 		return false
 	end
 	
-	if SimpleStats.db.profile.usablearmor == 1 then -- Show on all armor
+	if self.db.profile.usablearmor == 1 then -- Show on all armor
 		return true
-	elseif SimpleStats.db.profile.usablearmor == 2 then -- Show on wearable armor
+	elseif self.db.profile.usablearmor == 2 then -- Show on wearable armor
 		return usability >= 1
-	elseif SimpleStats.db.profile.usablearmor == 3 then -- Show on useful armor
+	elseif self.db.profile.usablearmor == 3 then -- Show on useful armor
 		return usability == 2
 	end
 end
