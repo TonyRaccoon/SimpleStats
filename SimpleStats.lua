@@ -8,7 +8,6 @@ TODO:
 ]]
 
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
-local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, curStats, newStats, invTypes, order
 
 local defaults = {											-- Default settings
 	profile = {
@@ -258,8 +257,8 @@ function SimpleStats:SortStats(changed_stats)				-- Takes a table of stat change
 	for k,v in pairs(increased_stats) do
 		local name = v[1]
 		local value = math.floor(v[2])
-		if order[name] then
-			local pos = order[name]
+		if self.order[name] then
+			local pos = self.order[name]
 			final[pos] = {name,value}
 		end
 	end
@@ -268,8 +267,8 @@ function SimpleStats:SortStats(changed_stats)				-- Takes a table of stat change
 	for k,v in pairs(decreased_stats) do
 		local name = v[1]
 		local value = math.floor(v[2])
-		if order[name] then
-			local pos = order[name]+50
+		if self.order[name] then
+			local pos = self.order[name]+50
 			final[pos] = {name,value}
 		end
 	end
@@ -320,18 +319,18 @@ function SimpleStats:PrintStats(tooltip, tnew,tcur,tcur2)	-- Takes a tooltip, ne
 		name = v[1]
 		
 		-- If it's a resistance, the localized strings are wrong and need to be converted to a second style to work
-		convertedName = resistanceNames[name] or name
+		convertedName = self.resistanceNames[name] or name
 		
 		val = v[2]+0
 		if self:StatIsEnabled(name) then
 			if (val > 0) then
-				if noNumberStats[convertedName] then
+				if self.noNumberStats[convertedName] then
 					tooltip:AddLine("|cff00ff00+".._G[convertedName])
 				else
 					tooltip:AddLine("|cff00ff00+"..val.."|cffffffff ".._G[convertedName])
 				end
 			elseif (val < 0) then
-				if noNumberStats[convertedName] then
+				if self.noNumberStats[convertedName] then
 					tooltip:AddLine("|cffff0000-".._G[convertedName])
 				else
 					tooltip:AddLine("|cffff0000"..val.."|cffffffff ".._G[convertedName])
@@ -368,15 +367,15 @@ function SimpleStats:CheckWeaponType(weaponType)			-- Determines whether this we
 	
 	if specSlot then
 		local specID = GetSpecializationInfo(specSlot)
-		if usableWeapons[class][specID] and usableWeapons[class][specID][weaponType] then
-			usability = usableWeapons[class][specID][weaponType]
+		if self.usableWeapons[class][specID] and self.usableWeapons[class][specID][weaponType] then
+			usability = self.usableWeapons[class][specID][weaponType]
 			-- weapon matches our spec and is usable
 		else
-			usability = usableWeapons[class][weaponType]
+			usability = self.usableWeapons[class][weaponType]
 			-- weapon doesn't match our spec, but is still usable
 		end
 	else
-		usability = usableWeapons[class][weaponType]
+		usability = self.usableWeapons[class][weaponType]
 		-- we don't have a spec, weapon is usable
 	end
 	
@@ -400,12 +399,12 @@ function SimpleStats:CheckArmorType(armorType)				-- Determines whether this arm
 	local level = UnitLevel("player")
 	local usability
 	
-	if usableArmor[class]["pre40"] and level < 40 then
-		usability = usableArmor[class]["pre40"][armorType]
-	elseif usableArmor[class]["pre40"] then
-		usability = usableArmor[class]["post40"][armorType]
+	if self.usableArmor[class]["pre40"] and level < 40 then
+		usability = self.usableArmor[class]["pre40"][armorType]
+	elseif self.usableArmor[class]["pre40"] then
+		usability = self.usableArmor[class]["post40"][armorType]
 	else
-		usability = usableArmor[class][armorType]
+		usability = self.usableArmor[class][armorType]
 	end
 	
 	if not usability and SimpleStats.db.profile.usablearmor > 1 then
@@ -429,45 +428,45 @@ function SimpleStats:HandleTooltip(self, ...)				-- Tooltip handler, parses a to
 		if not link then return end -- Workaround for obscure bug popping up saying link is nil
 		
 		local id = tonumber(strmatch(link,"item:(%d+):"))
-		local equipid = GetInventoryItemID("player",invTypes[loc])
+		local equipid = GetInventoryItemID("player",SimpleStats.invTypes[loc])
 		
-		if type ~= localized.armor_name and type ~= localized.weapon_name then return end								-- If it's not armor or a weapon, quit
+		if type ~= SimpleStats.localized.armor_name and type ~= SimpleStats.localized.weapon_name then return end								-- If it's not armor or a weapon, quit
 		if rarity-1 < SimpleStats.db.profile.minquality then return end													-- If it's below the current quality threshold, quit
-		if type == localized.weapon_name and not SimpleStats:CheckWeaponType(subtype) then return end								-- If it's a weapon and doesn't match our weapon settings, quit
+		if type == SimpleStats.localized.weapon_name and not SimpleStats:CheckWeaponType(subtype) then return end								-- If it's a weapon and doesn't match our weapon settings, quit
 		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end												-- Filter out shirts/tabards
 		
-		if type == localized.armor_name and subtype ~= localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then	-- Filter out disabled armor types (always show for Misc items and cloaks)
+		if type == SimpleStats.localized.armor_name and subtype ~= SimpleStats.localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then	-- Filter out disabled armor types (always show for Misc items and cloaks)
 			if not SimpleStats:CheckArmorType(subtype) then return end
 		end
 		
 		if id == equipid and not SimpleStats:HasTwoSlots(loc) then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
 		
-		local e1link = GetInventoryItemLink("player",invTypes[loc])
+		local e1link = GetInventoryItemLink("player",SimpleStats.invTypes[loc])
 		local e2link,firstloc
 		
-		if invTypes[loc] == 11 or invTypes[loc] == 13 or invTypes[loc] == 16 then
-			equipid2 = GetInventoryItemLink("player",invTypes[loc]+1)
+		if SimpleStats.invTypes[loc] == 11 or SimpleStats.invTypes[loc] == 13 or SimpleStats.invTypes[loc] == 16 then
+			equipid2 = GetInventoryItemLink("player",SimpleStats.invTypes[loc]+1)
 		end
 		
-		if invTypes[loc] == 11 or invTypes[loc] == 13 or invTypes[loc] == 16 then
-			e2link = GetInventoryItemLink("player",invTypes[loc]+1)
+		if SimpleStats.invTypes[loc] == 11 or SimpleStats.invTypes[loc] == 13 or SimpleStats.invTypes[loc] == 16 then
+			e2link = GetInventoryItemLink("player",SimpleStats.invTypes[loc]+1)
 		end
 		
-		if invTypes[loc] == 17 or loc == "INVTYPE_WEAPON" then -- If we're looking at an off-hand, get the main-hand type
+		if SimpleStats.invTypes[loc] == 17 or loc == "INVTYPE_WEAPON" then -- If we're looking at an off-hand, get the main-hand type
 			if GetInventoryItemLink("player",16) then
 				_,_,_,_,_,_,_,_,firstloc = GetItemInfo(GetInventoryItemLink("player",16))
 			end
 		end
 		
 		local soloEquipped = false -- true if the weapon cannot be equipped with a second weapon
-		if loc == "INVTYPE_2HWEAPON" or loc == "INVTYPE_RANGED" or (loc == "INVTYPE_RANGEDRIGHT" and subtype ~= localized.weapons.wands) then
+		if loc == "INVTYPE_2HWEAPON" or loc == "INVTYPE_RANGED" or (loc == "INVTYPE_RANGEDRIGHT" and subtype ~= SimpleStats.localized.weapons.wands) then
 			soloEquipped = true
 		end
 		
 		local curSoloEquipped = false -- true if the weapon in first weapon slot cannot be equipped with a second weapon
 		if GetInventoryItemLink("player",16) ~= nil then
 			local _,_,_,_,_,_,firstwepsubtype,_,firstweptype = GetItemInfo(GetInventoryItemLink("player",16))
-			if firstweptype == "INVTYPE_2HWEAPON" or firstweptype == "INVTYPE_RANGED" or (firstweptype == "INVTYPE_RANGEDRIGHT" and firstwepsubtype ~= localized.weapons.wands) then
+			if firstweptype == "INVTYPE_2HWEAPON" or firstweptype == "INVTYPE_RANGED" or (firstweptype == "INVTYPE_RANGEDRIGHT" and firstwepsubtype ~= SimpleStats.localized.weapons.wands) then
 				curSoloEquipped = true
 			end
 		end
@@ -477,7 +476,7 @@ function SimpleStats:HandleTooltip(self, ...)				-- Tooltip handler, parses a to
 		-- e1link = weapon in slot the new weapon is placed in
 		-- e2link = in case of ring, trinket, or weapon: weapon in second ring, trinket, or weapon (offhand) slot
 		
-		newStats = GetItemStats(link)
+		local newStats = GetItemStats(link)
 		
 		for k,v in pairs(newStats) do
 			if	(k == "ITEM_MOD_AGILITY_SHORT" and v > 0 and SimpleStats.db.profile.hideagility) or
@@ -490,57 +489,46 @@ function SimpleStats:HandleTooltip(self, ...)				-- Tooltip handler, parses a to
 		
 		if loc == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
 			self:AddLine("Trinket 1:")
-			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
 			self:AddLine(" ")
 			self:AddLine("Trinket 2:")
-			curStats = SimpleStats:GetCurrentStats(e2link)
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e2link))
 			
 		elseif loc == "INVTYPE_FINGER" then -- If the item is a ring, show stat changes for both rings
 			self:AddLine("Ring 1:")
-			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
 			self:AddLine(" ")
 			self:AddLine("Ring 2:")
-			curStats = SimpleStats:GetCurrentStats(e2link)
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e2link))
 			
 		elseif loc == "INVTYPE_WEAPON" then -- If the item is a 1H weapon, show stat changes for both weapon slots
 			if curSoloEquipped==false then self:AddLine("Weapon 1:") end
-			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
 			
 			if curSoloEquipped==false then -- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
 				self:AddLine(" ")
 				self:AddLine("Weapon 2:")
-				curStats = SimpleStats:GetCurrentStats(e2link)
-				SimpleStats:PrintStats(self, newStats,curStats)
+				SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e2link))
 			end
 			
 		elseif (soloEquipped==true) and equipid2 then -- Looking at a 2H and two 1H are equipped, so combine their stats
-			curStats = SimpleStats:GetCurrentStats(e1link)
-			curStats2 = SimpleStats:GetCurrentStats(e2link)
-			SimpleStats:PrintStats(self, newStats,curStats,curStats2)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link), SimpleStats:GetCurrentStats(e2link))
 		
-		elseif invTypes[loc] == 17 and firstloc == "INVTYPE_2HWEAPON" then -- If comparing an offhand and a 2h weapon, don't act like both can be equipped
-			curStats = SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16))
-			SimpleStats:PrintStats(self, newStats,curStats)
+		elseif SimpleStats.invTypes[loc] == 17 and firstloc == "INVTYPE_2HWEAPON" then -- If comparing an offhand and a 2h weapon, don't act like both can be equipped
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16)))
 			
 		elseif loc == "INVTYPE_HOLDABLE" and curSoloEquipped==true then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
-			curStats = SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16))
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16)))
 			
 		elseif id ~= equipid then -- else, but only if the item isn't already equipped
-			curStats = SimpleStats:GetCurrentStats(e1link)
-			SimpleStats:PrintStats(self, newStats,curStats)
+			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
 		end
 	end
 end
 
 function SimpleStats:SetupTables()							-- Sets up all of the utility/data tables used by the addon
 	-- Maps between INVTYPEs and slot IDs
-	invTypes = {
+	self.invTypes = {
 		INVTYPE_HEAD = 1,
 		INVTYPE_NECK = 2,
 		INVTYPE_SHOULDER = 3,
@@ -606,13 +594,13 @@ function SimpleStats:SetupTables()							-- Sets up all of the utility/data tabl
 	}
 	
 	-- Convert order table to "STAT_NAME" => index instead of "STAT_NAME"
-	order = {}
+	self.order = {}
 	for k,v in pairs(order_inverse) do
-		order[v] = k
+		self.order[v] = k
 	end
 	
 	-- Create mapping between the two different resistance names used
-	resistanceNames = {
+	self.resistanceNames = {
 		ITEM_MOD_HOLY_RESISTANCE_SHORT   = "RESISTANCE1_NAME",
 		ITEM_MOD_FIRE_RESISTANCE_SHORT   = "RESISTANCE2_NAME",
 		ITEM_MOD_NATURE_RESISTANCE_SHORT = "RESISTANCE3_NAME",
@@ -628,7 +616,7 @@ function SimpleStats:SetupTables()							-- Sets up all of the utility/data tabl
 	}
 	
 	-- The following stats should not show a number (+Indestructible instead of +57 Indestructible, for example)
-	noNumberStats = {
+	self.noNumberStats = {
 		ITEM_MOD_CR_STURDINESS_SHORT = true,
 	}
 	
@@ -670,7 +658,7 @@ function SimpleStats:SetupTables()							-- Sets up all of the utility/data tabl
 	}
 	
 	-- Create the final localized string array structure
-	localized = {
+	self.localized = {
 		weapon_name = itemClasses[1],
 		armor_name = itemClasses[2],
 		weapons = {},
@@ -682,314 +670,314 @@ function SimpleStats:SetupTables()							-- Sets up all of the utility/data tabl
 	
 	-- Merge localized and english weapon names
 	for i,name in pairs(names.weapons) do
-		localized.weapons[name] = weaponTypes[i]
+		self.localized.weapons[name] = weaponTypes[i]
 	end
 	
 	-- Merge localized and english armor names
 	for i,name in pairs(names.armor) do
-		localized.armor[name] = armorTypes[i]
+		self.localized.armor[name] = armorTypes[i]
 	end
 	
 	-- Create inverse table for localized -> english conversion
-	for engname,locname in pairs(localized.armor) do
-		localized.reverse.armor[locname] = engname
+	for engname,locname in pairs(self.localized.armor) do
+		self.localized.reverse.armor[locname] = engname
 	end
 	
 	-- 3=Useful for spec, 2=Useful for class, 1=Usable
-	usableWeapons = {
+	self.usableWeapons = {
 		WARLOCK = {
-			[localized.weapons.onehandedswords] = 3,
-			[localized.weapons.daggers]			= 3,
-			[localized.weapons.staves]			= 3,
-			[localized.weapons.wands]			= 3,
+			[self.localized.weapons.onehandedswords] = 3,
+			[self.localized.weapons.daggers]			= 3,
+			[self.localized.weapons.staves]			= 3,
+			[self.localized.weapons.wands]			= 3,
 		},
 		MAGE = {
-			[localized.weapons.onehandedswords]	= 3,
-			[localized.weapons.daggers]			= 3,
-			[localized.weapons.staves]			= 3,
-			[localized.weapons.wands]			= 3,
+			[self.localized.weapons.onehandedswords]	= 3,
+			[self.localized.weapons.daggers]			= 3,
+			[self.localized.weapons.staves]			= 3,
+			[self.localized.weapons.wands]			= 3,
 		},
 		PRIEST = {
-			[localized.weapons.onehandedmaces]	= 3,
-			[localized.weapons.daggers]			= 3,
-			[localized.weapons.staves]			= 3,
-			[localized.weapons.wands]			= 3,
+			[self.localized.weapons.onehandedmaces]	= 3,
+			[self.localized.weapons.daggers]			= 3,
+			[self.localized.weapons.staves]			= 3,
+			[self.localized.weapons.wands]			= 3,
 		},
 		DRUID = {
-			[localized.weapons.onehandedmaces]	= 2,
-			[localized.weapons.twohandedmaces]	= 2,
-			[localized.weapons.daggers]			= 2,
-			[localized.weapons.fistweapons]		= 2,
-			[localized.weapons.polearms]		= 2,
-			[localized.weapons.staves]			= 2,
+			[self.localized.weapons.onehandedmaces]	= 2,
+			[self.localized.weapons.twohandedmaces]	= 2,
+			[self.localized.weapons.daggers]			= 2,
+			[self.localized.weapons.fistweapons]		= 2,
+			[self.localized.weapons.polearms]		= 2,
+			[self.localized.weapons.staves]			= 2,
 			
 			[102] = { -- Balance
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
-				[localized.weapons.polearms]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.polearms]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 			[103] = { -- Feral
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.polearms]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.polearms]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 			[104] = { -- Guardian
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.polearms]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.polearms]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 			[105] = { -- Restoration
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
-				[localized.weapons.polearms]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.polearms]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 		},
 		ROGUE = {
-			[localized.weapons.bows]			= 1,
-			[localized.weapons.crossbows]		= 1,
-			[localized.weapons.guns]			= 1,
+			[self.localized.weapons.bows]			= 1,
+			[self.localized.weapons.crossbows]		= 1,
+			[self.localized.weapons.guns]			= 1,
 			
-			[localized.weapons.onehandedaxes]	= 2,
-			[localized.weapons.onehandedmaces]	= 2,
-			[localized.weapons.onehandedswords]	= 2,
-			[localized.weapons.daggers]			= 2,
-			[localized.weapons.fistweapons]		= 2,
+			[self.localized.weapons.onehandedaxes]	= 2,
+			[self.localized.weapons.onehandedmaces]	= 2,
+			[self.localized.weapons.onehandedswords]	= 2,
+			[self.localized.weapons.daggers]			= 2,
+			[self.localized.weapons.fistweapons]		= 2,
 			
 			[259] = { -- Assassination
-				[localized.weapons.daggers]			= 3,
+				[self.localized.weapons.daggers]			= 3,
 			},
 			[260] = { -- Combat
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.onehandedswords]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.onehandedswords]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
 			},
 			[261] = { -- Subtlety
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.onehandedswords]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.onehandedswords]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
 			},
 		},
 		MONK = {
-			[localized.weapons.onehandedaxes]	= 3,
-			[localized.weapons.onehandedmaces]	= 3,
-			[localized.weapons.onehandedswords]	= 3,
-			[localized.weapons.fistweapons]		= 3,
-			[localized.weapons.polearms]		= 3,
-			[localized.weapons.staves]			= 3,
+			[self.localized.weapons.onehandedaxes]	= 3,
+			[self.localized.weapons.onehandedmaces]	= 3,
+			[self.localized.weapons.onehandedswords]	= 3,
+			[self.localized.weapons.fistweapons]		= 3,
+			[self.localized.weapons.polearms]		= 3,
+			[self.localized.weapons.staves]			= 3,
 		},
 		SHAMAN = {
-			[localized.weapons.onehandedaxes]	= 2,
-			[localized.weapons.onehandedmaces]	= 2,
-			[localized.weapons.twohandedaxes]	= 2,
-			[localized.weapons.twohandedmaces]	= 2,
-			[localized.weapons.daggers]			= 2,
-			[localized.weapons.fistweapons]		= 2,
-			[localized.weapons.staves]			= 2,
+			[self.localized.weapons.onehandedaxes]	= 2,
+			[self.localized.weapons.onehandedmaces]	= 2,
+			[self.localized.weapons.twohandedaxes]	= 2,
+			[self.localized.weapons.twohandedmaces]	= 2,
+			[self.localized.weapons.daggers]			= 2,
+			[self.localized.weapons.fistweapons]		= 2,
+			[self.localized.weapons.staves]			= 2,
 			
 			[262] = { -- Elemental
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.twohandedaxes]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.twohandedaxes]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 			[262] = { -- Enhancement
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
 			},
 			[262] = { -- Restoration
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.twohandedaxes]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.twohandedaxes]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 		},
 		HUNTER = {
-			[localized.weapons.onehandedaxes]	= 1,
-			[localized.weapons.onehandedswords]	= 1,
-			[localized.weapons.twohandedaxes]	= 1,
-			[localized.weapons.twohandedswords]	= 1,
-			[localized.weapons.daggers]			= 1,
-			[localized.weapons.fistweapons]		= 1,
-			[localized.weapons.polearms]		= 1,
-			[localized.weapons.staves]			= 1,
+			[self.localized.weapons.onehandedaxes]	= 1,
+			[self.localized.weapons.onehandedswords]	= 1,
+			[self.localized.weapons.twohandedaxes]	= 1,
+			[self.localized.weapons.twohandedswords]	= 1,
+			[self.localized.weapons.daggers]			= 1,
+			[self.localized.weapons.fistweapons]		= 1,
+			[self.localized.weapons.polearms]		= 1,
+			[self.localized.weapons.staves]			= 1,
 			
-			[localized.weapons.guns]			= 3,
-			[localized.weapons.bows]			= 3,
-			[localized.weapons.crossbows]		= 3,
+			[self.localized.weapons.guns]			= 3,
+			[self.localized.weapons.bows]			= 3,
+			[self.localized.weapons.crossbows]		= 3,
 		},
 		WARRIOR = {
-			[localized.weapons.bows]			= 1,
-			[localized.weapons.crossbows]		= 1,
-			[localized.weapons.guns]			= 1,
+			[self.localized.weapons.bows]			= 1,
+			[self.localized.weapons.crossbows]		= 1,
+			[self.localized.weapons.guns]			= 1,
 			
-			[localized.weapons.onehandedaxes]	= 2,
-			[localized.weapons.onehandedmaces]	= 2,
-			[localized.weapons.onehandedswords]	= 2,
-			[localized.weapons.twohandedaxes]	= 2,
-			[localized.weapons.twohandedmaces]	= 2,
-			[localized.weapons.twohandedswords]	= 2,
-			[localized.weapons.daggers]			= 2,
-			[localized.weapons.fistweapons]		= 2,
-			[localized.weapons.polearms]		= 2,
-			[localized.weapons.staves]			= 2,
+			[self.localized.weapons.onehandedaxes]	= 2,
+			[self.localized.weapons.onehandedmaces]	= 2,
+			[self.localized.weapons.onehandedswords]	= 2,
+			[self.localized.weapons.twohandedaxes]	= 2,
+			[self.localized.weapons.twohandedmaces]	= 2,
+			[self.localized.weapons.twohandedswords]	= 2,
+			[self.localized.weapons.daggers]			= 2,
+			[self.localized.weapons.fistweapons]		= 2,
+			[self.localized.weapons.polearms]		= 2,
+			[self.localized.weapons.staves]			= 2,
 			
 			[71] = { -- Arms
-				[localized.weapons.twohandedaxes]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.twohandedswords]	= 3,
-				[localized.weapons.polearms]		= 3,
-				[localized.weapons.staves]			= 3,
+				[self.localized.weapons.twohandedaxes]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.twohandedswords]	= 3,
+				[self.localized.weapons.polearms]		= 3,
+				[self.localized.weapons.staves]			= 3,
 			},
 			[72] = { -- Fury
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.onehandedswords]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.onehandedswords]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
 			},
 			[73] = { -- Protection
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.onehandedswords]	= 3,
-				[localized.weapons.daggers]			= 3,
-				[localized.weapons.fistweapons]		= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.onehandedswords]	= 3,
+				[self.localized.weapons.daggers]			= 3,
+				[self.localized.weapons.fistweapons]		= 3,
 			},
 		},
 		PALADIN = {
-			[localized.weapons.onehandedaxes]	= 2,
-			[localized.weapons.onehandedmaces]	= 2,
-			[localized.weapons.onehandedswords]	= 2,
-			[localized.weapons.twohandedaxes]	= 2,
-			[localized.weapons.twohandedmaces]	= 2,
-			[localized.weapons.twohandedswords]	= 2,
-			[localized.weapons.polearms]		= 2,
+			[self.localized.weapons.onehandedaxes]	= 2,
+			[self.localized.weapons.onehandedmaces]	= 2,
+			[self.localized.weapons.onehandedswords]	= 2,
+			[self.localized.weapons.twohandedaxes]	= 2,
+			[self.localized.weapons.twohandedmaces]	= 2,
+			[self.localized.weapons.twohandedswords]	= 2,
+			[self.localized.weapons.polearms]		= 2,
 				
 			[67] = { -- Retribution
-				[localized.weapons.twohandedaxes]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.twohandedswords]	= 3,
-				[localized.weapons.polearms]		= 3,
+				[self.localized.weapons.twohandedaxes]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.twohandedswords]	= 3,
+				[self.localized.weapons.polearms]		= 3,
 			},
 			[66] = { -- Protection
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.onehandedswords]	= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.onehandedswords]	= 3,
 			},
 			[65] = { -- Holy
-				[localized.weapons.onehandedaxes]	= 3,
-				[localized.weapons.onehandedmaces]	= 3,
-				[localized.weapons.onehandedswords]	= 3,
-				[localized.weapons.twohandedaxes]	= 3,
-				[localized.weapons.twohandedmaces]	= 3,
-				[localized.weapons.twohandedswords]	= 3,
-				[localized.weapons.polearms]		= 3,
+				[self.localized.weapons.onehandedaxes]	= 3,
+				[self.localized.weapons.onehandedmaces]	= 3,
+				[self.localized.weapons.onehandedswords]	= 3,
+				[self.localized.weapons.twohandedaxes]	= 3,
+				[self.localized.weapons.twohandedmaces]	= 3,
+				[self.localized.weapons.twohandedswords]	= 3,
+				[self.localized.weapons.polearms]		= 3,
 			},
 		},
 		DEATHKNIGHT = {
-			[localized.weapons.onehandedaxes]	= 3,
-			[localized.weapons.onehandedmaces]	= 3,
-			[localized.weapons.onehandedswords]	= 3,
-			[localized.weapons.twohandedaxes]	= 3,
-			[localized.weapons.twohandedmaces]	= 3,
-			[localized.weapons.twohandedswords]	= 3,
-			[localized.weapons.polearms]		= 3,
+			[self.localized.weapons.onehandedaxes]	= 3,
+			[self.localized.weapons.onehandedmaces]	= 3,
+			[self.localized.weapons.onehandedswords]	= 3,
+			[self.localized.weapons.twohandedaxes]	= 3,
+			[self.localized.weapons.twohandedmaces]	= 3,
+			[self.localized.weapons.twohandedswords]	= 3,
+			[self.localized.weapons.polearms]		= 3,
 		}
 	}
 	
 	-- 2=Useful for class, 1=Usable
-	usableArmor = {
+	self.usableArmor = {
 		WARLOCK = {
-			[localized.armor.cloth]		= 2,
+			[self.localized.armor.cloth]		= 2,
 		},
 		MAGE = {
-			[localized.armor.cloth]		= 2,
+			[self.localized.armor.cloth]		= 2,
 		},
 		PRIEST = {
-			[localized.armor.cloth]		= 2,
+			[self.localized.armor.cloth]		= 2,
 		},
 		DRUID = {
-			[localized.armor.cloth]		= 1,
-			[localized.armor.leather]	= 2,
+			[self.localized.armor.cloth]		= 1,
+			[self.localized.armor.leather]	= 2,
 		},
 		ROGUE = {
-			[localized.armor.cloth]		= 1,
-			[localized.armor.leather]	= 2,
+			[self.localized.armor.cloth]		= 1,
+			[self.localized.armor.leather]	= 2,
 		},
 		MONK = {
-			[localized.armor.cloth]		= 1,
-			[localized.armor.leather]	= 2,
+			[self.localized.armor.cloth]		= 1,
+			[self.localized.armor.leather]	= 2,
 		},
 		SHAMAN = {
 			["pre40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 2,
 			},
 			["post40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 1,
-				[localized.armor.mail]		= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 1,
+				[self.localized.armor.mail]		= 2,
 			},
 		},
 		HUNTER = {
 			["pre40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 2,
 			},
 			["post40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 1,
-				[localized.armor.mail]		= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 1,
+				[self.localized.armor.mail]		= 2,
 			},
 		},
 		WARRIOR = {
 			["pre40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 1,
-				[localized.armor.mail]		= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 1,
+				[self.localized.armor.mail]		= 2,
 			},
 			["post40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 1,
-				[localized.armor.mail]		= 1,
-				[localized.armor.plate]		= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 1,
+				[self.localized.armor.mail]		= 1,
+				[self.localized.armor.plate]		= 2,
 			},
 		},
 		PALADIN = {
 			["pre40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 1,
-				[localized.armor.mail]		= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 1,
+				[self.localized.armor.mail]		= 2,
 			},
 			["post40"] = {
-				[localized.armor.cloth]		= 1,
-				[localized.armor.leather]	= 1,
-				[localized.armor.mail]		= 1,
-				[localized.armor.plate]		= 2,
+				[self.localized.armor.cloth]		= 1,
+				[self.localized.armor.leather]	= 1,
+				[self.localized.armor.mail]		= 1,
+				[self.localized.armor.plate]		= 2,
 			},
 		},
 		DEATHKNIGHT = {
-			[localized.armor.cloth]		= 1,
-			[localized.armor.leather]	= 1,
-			[localized.armor.mail]		= 1,
-			[localized.armor.plate]		= 2,
+			[self.localized.armor.cloth]		= 1,
+			[self.localized.armor.leather]	= 1,
+			[self.localized.armor.mail]		= 1,
+			[self.localized.armor.plate]		= 2,
 		}
 	}
 end
