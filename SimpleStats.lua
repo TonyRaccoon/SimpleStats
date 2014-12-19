@@ -272,7 +272,7 @@ local function sortStats(changed_stats)
 		local name = v[1]
 		local value = math.floor(v[2])
 		if order[name] then
-			local pos = order[name]+30
+			local pos = order[name]+50
 			final[pos] = {name,value}
 		end
 	end
