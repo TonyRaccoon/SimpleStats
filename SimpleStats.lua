@@ -1,6 +1,6 @@
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
-local defaults = {									-- Default settings
+SimpleStats.defaults = {									-- Default settings
 	profile = {
 		RESISTANCE0_NAME = false,
 		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = false,
@@ -31,7 +31,7 @@ local defaults = {									-- Default settings
 		minquality = 1
 	}
 }
-local options = {									-- Settings GUI table
+SimpleStats.options = {									-- Settings GUI table
 	name = "SimpleStats",
 	handler = SimpleStats,
 	type = "group",
@@ -983,30 +983,18 @@ function SimpleStats:HideBlizzComparison(self)		-- Copied from OldComparison - h
 end
 
 function SimpleStats:OnInitialize()					-- Runs when addon is initialized
-	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", defaults, "Default")
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats", options)
-	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats","SimpleStats")
-	SimpleStats:RegisterChatCommand("ss", "ChatCommand")
-	SimpleStats:RegisterChatCommand("simplestats", "ChatCommand")
+	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", self.defaults, "Default")
+	local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	
-	local options2 = deepcopy(options) -- Required to use Blizzard's addon options tabbing, not Ace's (thanks to InCombatIndicator)
-	options2.args.profile = LibStub("AceDBOptions-3.0"):GetOptionsTable(SimpleStats.db)
-	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats Profile", options2.args.profile)
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats", self.options)
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats Profile", profileOptions)
+	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats","SimpleStats")
 	self.profileFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats Profile", "Profiles", "SimpleStats")
 	
-	-- Disable individual armor options when 'Auto armor' option is checked
-	if (self.db.profile.smartarmor) then
-		options.args.cloth.disabled = true
-		options.args.leather.disabled = true
-		options.args.mail.disabled = true
-		options.args.plate.disabled = true
-		options.args.shields.disabled = true
-	end
+	self:RegisterChatCommand("ss", "ChatCommand")
+	self:RegisterChatCommand("simplestats", "ChatCommand")
 	
 	self:SetupTables()
-	
-	--GameTooltip:HookScript("OnTooltipSetItem",handleTooltip)
-	--ItemRefTooltip:HookScript("OnTooltipSetItem",handleTooltip)
 	
 	self:HookScript(GameTooltip, "OnTooltipSetItem", "HandleTooltip")
 	self:HookScript(ItemRefTooltip, "OnTooltipSetItem", "HandleTooltip")
@@ -1018,25 +1006,6 @@ function SimpleStats:OnInitialize()					-- Runs when addon is initialized
 end
 
 --- Misc Lua Functions ---
-if not deepcopy then			-- Clones a table with a new reference
-function deepcopy(object)
-	local lookup_table = {}
-	local function _copy(object)
-		if type(object) ~= "table" then
-			return object
-		elseif lookup_table[object] then
-			return lookup_table[object]
-		end
-		local new_table = {}
-		lookup_table[object] = new_table
-		for index, value in pairs(object) do
-			new_table[_copy(index)] = _copy(value)
-		end
-		return setmetatable(new_table, getmetatable(object))
-	end
-	return _copy(object)
-end
-end
 if not print_r then				-- Debug function to print the contents of a table
 function print_r ( t ) 
     local print_r_cache={}
