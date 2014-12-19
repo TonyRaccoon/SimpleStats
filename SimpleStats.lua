@@ -258,7 +258,7 @@ local function sortStats(changed_stats)
 		end
 	end
 	
-	-- Now sort each pile by stat name
+	-- Add the positive stat changes, in the correct position based on the 'order' table, to the final table
 	for k,v in pairs(increased_stats) do
 		local name = v[1]
 		local value = math.floor(v[2])
@@ -268,6 +268,7 @@ local function sortStats(changed_stats)
 		end
 	end
 	
+	-- Finally, do the same thing for the negative stat changes, except offset them by 50 so they appear after the positive changes
 	for k,v in pairs(decreased_stats) do
 		local name = v[1]
 		local value = math.floor(v[2])
