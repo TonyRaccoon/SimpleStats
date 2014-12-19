@@ -12,8 +12,8 @@ local localized, resistanceNames, noNumberStats, usableWeapons, usableArmor, cur
 
 local defaults = {
 	profile = {
-		RESISTANCE0_NAME = true,
-		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = true,
+		RESISTANCE0_NAME = false,
+		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = false,
 		ITEM_MOD_STAMINA_SHORT = true,
 		ITEM_MOD_AGILITY_SHORT = true,
 		ITEM_MOD_STRENGTH_SHORT = true,
@@ -22,6 +22,8 @@ local defaults = {
 		ITEM_MOD_CRIT_RATING_SHORT = true,
 		ITEM_MOD_HASTE_RATING_SHORT = true,
 		ITEM_MOD_MASTERY_RATING_SHORT = true,
+		ITEM_MOD_CR_MULTISTRIKE_SHORT = true,
+		ITEM_MOD_VERSATILITY = true,
 		ITEM_MOD_SPELL_POWER_SHORT = true,
 		ITEM_MOD_PVP_POWER_SHORT = true,
 		ITEM_MOD_RESILIENCE_RATING_SHORT = true,
@@ -34,7 +36,6 @@ local defaults = {
 		hideagility = false,
 		hidestrength = false,
 		hideintellect = false,
-		minlevel = false,
 		minquality = 1
 	}
 }
