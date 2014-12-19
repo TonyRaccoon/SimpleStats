@@ -50,21 +50,23 @@ local options = {
 		minquality = {
 			type = "select",
 			name = "Minimum Quality",
+			desc = "Controls the minimum item quality that stat comparisons will be shown on",
 			values = {"Uncommon", "Rare", "Epic"},
 			order = 10,
+			width = "double",
 		},
-		
 		usableweapons = {
 			type = "select",
 			name = "Show on weapon types:",
+			desc = "Controls which types of weapons stat comparisons will be shown on",
 			values = {"All", "Only usable", "Only useful to current class", "Only useful to current specialization"},
 			order = 20,
 			width = "double",
 		},
-		
 		usablearmor = {
 			type = "select",
 			name = "Show on armor types:",
+			desc = "Controls which types of armor stat comparisons will be shown on",
 			values = {"All", "Only wearable", "Only useful to current class"},
 			order = 30,
 			width = "double",
