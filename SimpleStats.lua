@@ -330,14 +330,6 @@ function SimpleStats:PrintStats(tooltip,newStats,currentStats,currentStats2) -- 
 	end
 end
 
-function SimpleStats:HasTwoSlots(invType)			-- Returns whether the given INVTYPE has a sibling slot (ring, trinket, one-handed weapon)
-	if (invType == "INVTYPE_TRINKET" or invType == "INVTYPE_FINGER" or invType == "INVTYPE_WEAPON") then
-		return true
-	else
-		return false
-	end
-end
-
 function SimpleStats:GetCurrentStats(itemLink)		-- Returns the stats for the given itemlink
 	if (itemLink == nil) then
 		return {}
@@ -425,7 +417,7 @@ function SimpleStats:HandleTooltip(self, ...)		-- Tooltip handler, parses a tool
 			if not SimpleStats:CheckArmorType(subtype) then return end
 		end
 		
-		if id == equipid and not SimpleStats:HasTwoSlots(loc) then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
+		if id == equipid and not SimpleStats.twoSlotInvTypes[loc] then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
 		
 		local e1link = GetInventoryItemLink("player",SimpleStats.invTypes[loc])
 		local e2link,firstloc
@@ -538,6 +530,12 @@ function SimpleStats:SetupTables()					-- Sets up all of the utility/data tables
 		INVTYPE_RANGED = 16,
 		INVTYPE_RANGEDRIGHT = 16,
 		INVTYPE_TABARD = 19,
+	}
+	
+	self.twoSlotInvTypes = {
+		INVTYPE_TRINKET = true,
+		INVTYPE_FINGER = true,
+		INVTYPE_WEAPON = true
 	}
 	
 	-- Define the order that stats should appear in in tooltips
