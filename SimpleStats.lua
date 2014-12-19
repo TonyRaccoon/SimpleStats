@@ -440,21 +440,16 @@ local function handleTooltip(self, ...)
 		local id = tonumber(strmatch(link,"item:(%d+):"))
 		local equipid = GetInventoryItemID("player",invTypes[loc])
 		
-		if type ~= localized.armor_name and type ~= localized.weapon_name then return end									-- If it's not armor or a weapon, quit
-		if rarity-1 < SimpleStats.db.profile.minquality then return end														-- If it's below the current quality threshold, quit
-		if type == localized.weapon_name and not checkWeaponType(subtype) then return end									-- Check weapon type
-		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end													-- Filter out shirts/tabards
+		if type ~= localized.armor_name and type ~= localized.weapon_name then return end								-- If it's not armor or a weapon, quit
+		if rarity-1 < SimpleStats.db.profile.minquality then return end													-- If it's below the current quality threshold, quit
+		if type == localized.weapon_name and not checkWeaponType(subtype) then return end								-- If it's a weapon and doesn't match our weapon settings, quit
+		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end												-- Filter out shirts/tabards
 		
-		if type == localized.armor_name and subtype ~= localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then		-- Filter out disabled armor types (always show for Misc items and cloaks)
-			if SimpleStats.db.profile.smartarmor then
-				if not checkArmorType(subtype) then return end
-			else
-				local english_name = localized.reverse.armor[subtype]
-				if not SimpleStats.db.profile[english_name] then return end
-			end
+		if type == localized.armor_name and subtype ~= localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then	-- Filter out disabled armor types (always show for Misc items and cloaks)
+			if not checkArmorType(subtype) then return end
 		end
 		
-		if id == equipid and not hasTwoSlots(loc) then return end															-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
+		if id == equipid and not hasTwoSlots(loc) then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
 		
 		local e1link = GetInventoryItemLink("player",invTypes[loc])
 		local e2link,firstloc
