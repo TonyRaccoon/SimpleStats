@@ -989,7 +989,7 @@ function SimpleStats:HideBlizzComparison(self)		-- Copied from OldComparison - h
 end
 
 function SimpleStats:OnInitialize()					-- Runs when addon is initialized
-	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", self.defaults, "Default")
+	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", self.defaults)
 	local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats", self.options)
