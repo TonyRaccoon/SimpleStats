@@ -1,6 +1,6 @@
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
-SimpleStats.defaults = {									-- Default settings
+SimpleStats.defaults = {										-- Default settings
 	profile = {
 		RESISTANCE0_NAME = false,
 		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = false,
@@ -34,7 +34,7 @@ SimpleStats.defaults = {									-- Default settings
 		minquality = 1
 	}
 }
-SimpleStats.options = {									-- Settings GUI table
+SimpleStats.options = {											-- Settings GUI table
 	name = "SimpleStats",
 	handler = SimpleStats,
 	type = "group",
@@ -220,14 +220,14 @@ SimpleStats.options = {									-- Settings GUI table
 		}
 	}
 }
-function SimpleStats:get(key)						-- Getter function for settings, used by options table
+function SimpleStats:get(key)									-- Getter function for settings, used by options table
 	return self.db.profile[key[1]]
 end
-function SimpleStats:set(key,value)					-- Setter function for settings, used by options table
+function SimpleStats:set(key,value)								-- Setter function for settings, used by options table
 	self.db.profile[key[1]] = value
 end
 
-function SimpleStats:ChatCommand(input)				-- Chat command handler
+function SimpleStats:ChatCommand(input)							-- Chat command handler
 	input = input:trim()
 	if not input or input == "" then
 		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
@@ -245,7 +245,7 @@ function SimpleStats:ChatCommand(input)				-- Chat command handler
 	end
 end
 
-function SimpleStats:SortStats(changedStats)		-- Takes a table of stat changes, returns a new table sorted by logical stat order and with positives first
+function SimpleStats:SortStats(changedStats)					-- Takes a table of stat changes, returns a new table sorted by logical stat order and with positives first
 	local increasedStats = {}	-- positive increases
 	local decreasedStats = {}	-- negative increases
 	local sortedStats = {}		-- final returned table
@@ -280,7 +280,7 @@ function SimpleStats:SortStats(changedStats)		-- Takes a table of stat changes, 
 	return sortedStats
 end
 
-function SimpleStats:StatIsEnabled(statName)		-- Returns whether the given stat should be shown. Resistances and gem sockets are handled specially
+function SimpleStats:StatIsEnabled(statName)					-- Returns whether the given stat should be shown. Resistances and gem sockets are handled specially
 	if strmatch(statName,"RESISTANCE_SHORT") then
 		return self.db.profile.resistance
 	elseif strmatch(statName, "EMPTY_SOCKET") then
@@ -290,7 +290,7 @@ function SimpleStats:StatIsEnabled(statName)		-- Returns whether the given stat 
 	end
 end
 
-function SimpleStats:PrintStats(tooltip,newStats,currentStats) -- Takes a tooltip, new stats, and existing stats, and prints the stat change
+function SimpleStats:PrintStats(tooltip,newStats,currentStats)	-- Takes a tooltip, new stats, and existing stats, and prints the stat change
 	local statChanges = {}
 
 	for k,v in pairs(newStats) do
@@ -334,7 +334,7 @@ function SimpleStats:PrintStats(tooltip,newStats,currentStats) -- Takes a toolti
 	end
 end
 
-function SimpleStats:CombineItemStats(itemLink1,itemLink2)
+function SimpleStats:CombineItemStats(itemLink1,itemLink2)		-- Returns a table containing the combined stat bonuses of zero, one, or two items
 	local combinedStats = {}
 	if itemLink1 then
 		combinedStats = GetItemStats(itemLink1)
@@ -353,7 +353,7 @@ function SimpleStats:CombineItemStats(itemLink1,itemLink2)
 	return combinedStats
 end
 
-function SimpleStats:CheckWeaponType(weaponType)	-- Determines whether this weapon type should have stats printed for it (taking into account settings)
+function SimpleStats:CheckWeaponType(weaponType)				-- Determines whether this weapon type should have stats printed for it (taking into account settings)
 	local _,class = UnitClass("player")
 	local specSlot = GetSpecialization()
 	local usability, specID
@@ -387,7 +387,7 @@ function SimpleStats:CheckWeaponType(weaponType)	-- Determines whether this weap
 	end
 end
 
-function SimpleStats:CheckArmorType(armorType)		-- Determines whether this armor type should have stats printed for it (taking into account settings)
+function SimpleStats:CheckArmorType(armorType)					-- Determines whether this armor type should have stats printed for it (taking into account settings)
 	if armorType == self.localized.armor.miscellaneous then
 		return true -- If it's misc. armor (trinket, ring, etc.), always show
 	end
@@ -417,7 +417,7 @@ function SimpleStats:CheckArmorType(armorType)		-- Determines whether this armor
 	end
 end
 
-function SimpleStats:IsWeapon2H(itemLink)			-- Returns whether the given weapon takes up both weapon slots
+function SimpleStats:IsWeapon2H(itemLink)						-- Returns whether the given weapon takes up both weapon slots
 	local _,_,_,_,_,_,subType,_,invType = GetItemInfo(itemLink)
 	
 	-- RANGEDRIGHT requires an additional check since wands are RANGEDRIGHT but CAN be wielded with an off-hand
@@ -432,7 +432,33 @@ function SimpleStats:IsWeapon2H(itemLink)			-- Returns whether the given weapon 
 	return false
 end
 
-function SimpleStats:HandleTooltip(self, ...)		-- Tooltip handler, parses a tooltip and modifies it with the stat changes
+function SimpleStats:AreIdentical(itemLink1, itemLink2)			-- Determines whether two items are identical (takes into account id, suffix, difficulty, and bonuses)
+	-- If either item is missing, they're obviously not identical
+	if not itemLink1 or not itemLink2 then
+		return
+	end
+	
+	-- Convert itemLinks to itemStrings
+	itemLink1 = string.match(itemLink1, "item[%-?%d:]+")
+	itemLink2 = string.match(itemLink2, "item[%-?%d:]+")
+	
+	local _, id1, _, _, _, _, _, suffix1, _, _, _, diff1, nbonus1 = strsplit(":", itemLink1)
+	local _, id2, _, _, _, _, _, suffix2, _, _, _, diff2, nbonus2 = strsplit(":", itemLink2)
+	
+	local bonus1 = string.match(itemLink1, "item:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:(.+)")
+	local bonus2 = string.match(itemLink2, "item:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:(.+)")
+	
+	if  id1     == id2
+	and suffix1 == suffix2
+	and diff1   == diff2
+	and bonus1  == bonus2 then
+		return true
+	else
+		return false
+	end
+end
+
+function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a tooltip and modifies it with the stat changes
 	local _,itemLink = self:GetItem()
 	if not itemLink then return end -- Quit if this isn't an item tooltip
 	
@@ -459,8 +485,9 @@ function SimpleStats:HandleTooltip(self, ...)		-- Tooltip handler, parses a tool
 		equippedItems[2].link = GetInventoryItemLink("player",SimpleStats.invTypes[invType]+1)
 	end
 	
-	-- Quit if the (id,suffix,bonuses) equals the first equipped (id,suffix,bonuses), AND second if it exists
-	if itemID == equippedItems[1].id and (not equippedItems[2].id or itemID == equippedItems[2].id) then
+	-- Quit if the item is identical to the only (most things)/both (rings, trinkets, etc.) equipped item
+	if SimpleStats:AreIdentical(itemLink, equippedItems[1].link)
+	and (not equippedItems[2].link or SimpleStats:AreIdentical(itemLink, equippedItems[2].link)) then
 		return
 	end
 	
@@ -530,7 +557,7 @@ function SimpleStats:HandleTooltip(self, ...)		-- Tooltip handler, parses a tool
 	end
 end
 
-function SimpleStats:SetupTables()					-- Sets up all of the utility/data tables used by the addon
+function SimpleStats:SetupTables()								-- Sets up all of the utility/data tables used by the addon
 	-- Maps between INVTYPEs and slot IDs
 	self.invTypes = {
 		INVTYPE_HEAD = 1,
@@ -1001,7 +1028,7 @@ function SimpleStats:SetupTables()					-- Sets up all of the utility/data tables
 	}
 end
 
-function SimpleStats:HideBlizzComparison(self)		-- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
+function SimpleStats:HideBlizzComparison(self)					-- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
 	local old = self.SetHyperlinkCompareItem
 	self.SetHyperlinkCompareItem = function(self, link, level, shift, main, ...)
 		main = nil
@@ -1009,7 +1036,7 @@ function SimpleStats:HideBlizzComparison(self)		-- Copied from OldComparison - h
 	end
 end
 
-function SimpleStats:OnInitialize()					-- Runs when addon is initialized
+function SimpleStats:OnInitialize()								-- Runs when addon is initialized
 	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", self.defaults)
 	local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
 	
