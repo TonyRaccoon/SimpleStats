@@ -475,14 +475,30 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	end
 	
 	-- Get data on currently equipped items
-	local equippedItems = {[1]={}, [2]={}}
-	equippedItems[1].id = GetInventoryItemID("player",SimpleStats.invTypes[invType])
-	equippedItems[1].link = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
+	local equippedItems = {[1]={},[2]={}}
+	local firstItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
+	if (firstItemLink) then
+		local _,_,_,firstItemLevel = GetItemInfo(firstItemLink)
+		
+		equippedItems[1] = {
+			id    = tonumber(strmatch(firstItemLink,"item:(%d+):")),
+			level = firstItemLevel,
+			link  = firstItemLink
+		}
+	end
 	
 	-- Get data on second equipped item if in a dual slot (ring, trinket, weapon)
 	if SimpleStats.twoSlotInvTypes[invType] then
-		equippedItems[2].id = GetInventoryItemID("player",SimpleStats.invTypes[invType]+1)
-		equippedItems[2].link = GetInventoryItemLink("player",SimpleStats.invTypes[invType]+1)
+		local secondItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType]+1)
+		if (secondItemLink) then
+			local _,_,_,secondItemLevel = GetItemInfo(secondItemLink)
+			
+			equippedItems[2] = {
+				id    = tonumber(strmatch(secondItemLink,"item:(%d+):")),
+				level = secondItemLevel,
+				link  = secondItemLink
+			}
+		end
 	end
 	
 	-- Quit if the item is identical to the only (most things)/both (rings, trinkets, etc.) equipped item
