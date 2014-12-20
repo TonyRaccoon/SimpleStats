@@ -16,6 +16,9 @@ SimpleStats.defaults = {									-- Default settings
 		ITEM_MOD_VERSATILITY = true,
 		ITEM_MOD_CR_LIFESTEAL_SHORT = true,
 		ITEM_MOD_CR_AVOIDANCE_SHORT = true,
+		ITEM_MOD_CR_SPEED_SHORT = true,
+		--ITEM_MOD_CR_AMPLIFY_SHORT = true,
+		--ITEM_MOD_CR_CLEAVE_SHORT = true,
 		ITEM_MOD_SPELL_POWER_SHORT = true,
 		ITEM_MOD_PVP_POWER_SHORT = true,
 		ITEM_MOD_RESILIENCE_RATING_SHORT = true,
@@ -179,6 +182,21 @@ SimpleStats.options = {									-- Settings GUI table
 			name = "Avoidance",
 			order = 310,
 		},
+		ITEM_MOD_CR_SPEED_SHORT = {
+			type = "toggle",
+			name = "Speed",
+			order = 300,
+		},
+		--[[ITEM_MOD_CR_AMPLIFY_SHORT = {
+			type = "toggle",
+			name = "Amplify",
+			order = 300,
+		},
+		ITEM_MOD_CR_CLEAVE_SHORT = {
+			type = "toggle",
+			name = "Cleave",
+			order = 300,
+		},]]
 		
 		header5 = {type = "header", name = "Hide When Stat Exists", order = 340},
 		
@@ -583,6 +601,9 @@ function SimpleStats:SetupTables()					-- Sets up all of the utility/data tables
 		"ITEM_MOD_CR_STURDINESS_SHORT",
 		"ITEM_MOD_CR_LIFESTEAL_SHORT",
 		"ITEM_MOD_CR_AVOIDANCE_SHORT",
+		"ITEM_MOD_CR_SPEED_SHORT",
+		--"ITEM_MOD_CR_AMPLIFY_SHORT",
+		--"ITEM_MOD_CR_CLEAVE_SHORT",
 	}
 	
 	-- Convert order table to "STAT_NAME" => index instead of "STAT_NAME"
