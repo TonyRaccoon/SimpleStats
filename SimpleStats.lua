@@ -70,39 +70,39 @@ SimpleStats.options = {											-- Settings GUI table
 		
 		header2 = {type = "header", name = "Primary Stats", order = 90},
 		
-		RESISTANCE0_NAME = {
-			type = "toggle",
-			name = "Armor",
-			order = 100,
-			width = "half"
-		},
-		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = {
-			type = "toggle",
-			name = "DPS",
-			order = 110,
-			width = "half"
-		},
-		ITEM_MOD_STAMINA_SHORT = {
-			type = "toggle",
-			name = "Stamina",
-			order = 120,
-			width = "half"
-		},
 		ITEM_MOD_AGILITY_SHORT = {
 			type = "toggle",
 			name = "Agility",
-			order = 130,
+			order = 100,
 			width = "half"
 		},
 		ITEM_MOD_STRENGTH_SHORT = {
 			type = "toggle",
 			name = "Strength",
-			order = 140,
+			order = 110,
 			width = "half"
 		},
 		ITEM_MOD_INTELLECT_SHORT = {
 			type = "toggle",
 			name = "Intellect",
+			order = 120,
+			width = "half"
+		},
+		ITEM_MOD_STAMINA_SHORT = {
+			type = "toggle",
+			name = "Stamina",
+			order = 130,
+			width = "double"
+		},
+		RESISTANCE0_NAME = {
+			type = "toggle",
+			name = "Armor",
+			order = 140,
+			width = "half"
+		},
+		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = {
+			type = "toggle",
+			name = "DPS",
 			order = 150,
 			width = "half"
 		},
@@ -110,7 +110,6 @@ SimpleStats.options = {											-- Settings GUI table
 			type = "toggle",
 			name = "Item Level",
 			order = 155,
-			width = "half"
 		},
 		
 		header3 = {type = "header", name = "Secondary Stats", order = 160},
@@ -125,46 +124,45 @@ SimpleStats.options = {											-- Settings GUI table
 			name = "Haste",
 			order = 180,
 		},
-		ITEM_MOD_SPIRIT_SHORT = {
-			type = "toggle",
-			name = "Spirit",
-			order = 190,
-		},
-		ITEM_MOD_SPELL_POWER_SHORT = {
-			type = "toggle",
-			name = "Spell Power",
-			order = 200,
-		},
 		ITEM_MOD_MASTERY_RATING_SHORT = {
 			type = "toggle",
 			name = "Mastery",
-			order = 210,
+			order = 190,
 		},
 		ITEM_MOD_CR_MULTISTRIKE_SHORT = {
 			type = "toggle",
 			name = "Multistrike",
-			order = 211,
+			order = 200,
 		},
 		ITEM_MOD_VERSATILITY = {
 			type = "toggle",
 			name = "Versatility",
-			order = 212,
+			order = 210,
+		},
+		ITEM_MOD_SPIRIT_SHORT = {
+			type = "toggle",
+			name = "Spirit",
+			order = 220,
+		},
+		ITEM_MOD_SPELL_POWER_SHORT = {
+			type = "toggle",
+			name = "Spell Power",
+			order = 230,
 		},
 		ITEM_MOD_PVP_POWER_SHORT = {
 			type = "toggle",
 			name = "PvP Power",
-			order = 230,
+			order = 240,
 		},
 		ITEM_MOD_RESILIENCE_RATING_SHORT = {
 			type = "toggle",
 			name = "PvP Resilience",
-			order = 240,
+			order = 250,
 		},
-		
 		resistance = {
 			type = "toggle",
 			name = "Resistances",
-			order = 250,
+			order = 260,
 		},
 		
 		header4 = {type = "header", name = "Tertiary Stats", order = 270},
@@ -195,14 +193,14 @@ SimpleStats.options = {											-- Settings GUI table
 			order = 300,
 		},
 		--[[ITEM_MOD_CR_AMPLIFY_SHORT = {
-			type = "toggle",
+			type = "toggle",a
 			name = "Amplify",
-			order = 300,
+			order = 310,
 		},
 		ITEM_MOD_CR_CLEAVE_SHORT = {
 			type = "toggle",
 			name = "Cleave",
-			order = 300,
+			order = 320,
 		},]]
 		
 		header5 = {type = "header", name = "Hide When Stat Exists", order = 340},
