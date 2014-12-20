@@ -440,7 +440,7 @@ end
 function SimpleStats:AreIdentical(itemLink1, itemLink2)			-- Determines whether two items are identical (takes into account id, suffix, difficulty, and bonuses)
 	-- If either item is missing, they're obviously not identical
 	if not itemLink1 or not itemLink2 then
-		return
+		return false
 	end
 	
 	-- Convert itemLinks to itemStrings
@@ -494,7 +494,7 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	end
 	
 	-- Get data on currently equipped items
-	local equippedItems = {[1]={},[2]={}}
+	local equippedItems = {[1]={},[2]={slotExists=false}}
 	local firstItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
 	if (firstItemLink) then
 		local _,_,_,firstItemLevel = GetItemInfo(firstItemLink)
@@ -507,22 +507,26 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	end
 	
 	-- Get data on second equipped item if in a dual slot (ring, trinket, weapon)
-	if SimpleStats.twoSlotInvTypes[invType] then
-		local secondItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType]+1)
+	
+	if SimpleStats.secondSlotID[SimpleStats.invTypes[invType]] then
+		equippedItems[2].slotExists = true
+		
+		local secondItemLink = GetInventoryItemLink("player",SimpleStats.secondSlotID[SimpleStats.invTypes[invType]])
 		if (secondItemLink) then
 			local _,_,_,secondItemLevel = GetItemInfo(secondItemLink)
 			
 			equippedItems[2] = {
 				id    = tonumber(strmatch(secondItemLink,"item:(%d+):")),
 				level = secondItemLevel,
-				link  = secondItemLink
+				link  = secondItemLink,
+				slotExists = true
 			}
 		end
 	end
 	
 	-- Quit if the item is identical to the only (most things)/both (rings, trinkets, etc.) equipped item
 	if SimpleStats:AreIdentical(itemLink, equippedItems[1].link)
-	and (not equippedItems[2].link or SimpleStats:AreIdentical(itemLink, equippedItems[2].link)) then
+	and (SimpleStats:AreIdentical(itemLink, equippedItems[2].link) or not equippedItems[2].slotExists) then
 		return
 	end
 	
@@ -564,7 +568,8 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	
 	self:AddLine(" ")
 	
-	if invType == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
+	-- If the item is a trinket, show stat changes for both trinkets, but if we don't have any trinkets, just show one stat comparison ('else' below)
+	if invType == "INVTYPE_TRINKET" and (equippedItems[1].link or equippedItems[2].link) then
 		self:AddLine("Trinket 1:")
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[1].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
@@ -572,8 +577,9 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 		self:AddLine("Trinket 2:")
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[2].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[2].link))
-		
-	elseif invType == "INVTYPE_FINGER" then -- If the item is a ring, show stat changes for both rings
+	
+	-- If the item is a ring, show stat changes for both rings, but if we don't have any rings, just show one stat comparison ('else' below)
+	elseif invType == "INVTYPE_FINGER" and (equippedItems[1].link or equippedItems[2].link) then
 		self:AddLine("Ring 1:")
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[1].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
@@ -581,32 +587,42 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 		self:AddLine("Ring 2:")
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[2].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[2].link))
-		
-	elseif invType == "INVTYPE_WEAPON" then -- If the item is a 1H weapon, show stat changes for both weapon slots
+	
+	-- If the item is a 1H weapon, show stat changes for both weapon slots, but if we don't have any weapons, just show one stat comparison ('else' below)
+	elseif invType == "INVTYPE_WEAPON" and (equippedItems[1].link or equippedItems[2].link) then
 		if not equippedIs2HWeapon then self:AddLine("Weapon 1:") end
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[1].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
 		
-		if not equippedIs2HWeapon then -- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
+		-- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
+		if not equippedIs2HWeapon then
 			self:AddLine(" ")
 			self:AddLine("Weapon 2:")
 			SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[2].level)
 			SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[2].link))
 		end
-		
-	elseif SimpleStats:IsWeapon2H(itemLink) and equippedItems[2].id then -- Looking at a 2H and two 1H are equipped, so combine their stats
+	
+	-- Looking at a 2H and two 1H are equipped, so combine their stats
+	elseif SimpleStats:IsWeapon2H(itemLink) and equippedItems[1].id and equippedItems[2].id then
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[2].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link, equippedItems[2].link))
 	
-	elseif SimpleStats.invTypes[invType] == 17 and equippedIs2HWeapon then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
+	-- Looking at a 2H and something is in the off-hand slot, so compare to that
+	elseif SimpleStats:IsWeapon2H(itemLink) and GetInventoryItemLink("player",17) then
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(GetInventoryItemLink("player",17)))
+	
+	-- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
+	elseif SimpleStats.invTypes[invType] == 17 and equippedIs2HWeapon then
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, currentMainHand.level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(currentMainHand.link))
-		
+	
+	-- Otherwise, print a single stat comparison
 	else
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[1].level)
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
 	end
 	
+	-- Finally, show the tooltip now that we're done modifying it
 	if (self:GetName() == "GameTooltip") then
 		self:Show()
 	end
@@ -640,10 +656,14 @@ function SimpleStats:SetupTables()								-- Sets up all of the utility/data tab
 		INVTYPE_TABARD = 19,
 	}
 	
-	self.twoSlotInvTypes = {
-		INVTYPE_TRINKET = true,
-		INVTYPE_FINGER = true,
-		INVTYPE_WEAPON = true
+	-- Used both to determine whether a slot has a sibling slot, and if so, what its slotID is
+	self.secondSlotID = {
+		[11] = 12,
+		[12] = 11,
+		[13] = 14,
+		[14] = 13,
+		[16] = 17,
+		[17] = 16,
 	}
 	
 	-- Define the order that stats should appear in in tooltips
