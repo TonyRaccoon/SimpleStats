@@ -298,41 +298,41 @@ end
 function SimpleStats:PrintStats(tooltip,newStats,currentStats)	-- Takes a tooltip, new stats, and existing stats, and prints the stat change
 	local statChanges = {}
 
-	for k,v in pairs(newStats) do
-		if currentStats[k] then -- Stat exists on both, do subtraction
-			statChanges[k] = newStats[k] - currentStats[k]
+	for statName,statValue in pairs(newStats) do
+		if currentStats[statName] then -- Stat exists on both, do subtraction
+			statChanges[statName] = newStats[statName] - currentStats[statName]
 		else -- New stat, just use the value
-			statChanges[k] = newStats[k]
+			statChanges[statName] = newStats[statName]
 		end
 	end
 	
-	for k,v in pairs(currentStats) do
-		if not newStats[k] then
-			statChanges[k] = -v
+	for statName,statValue in pairs(currentStats) do
+		if not newStats[statName] then
+			statChanges[statName] = -statValue
 		end
 	end
 	
 	statChanges = self:SortStats(statChanges)
 	
-	for k,v in orderedPairs(statChanges) do
-		name = v[1]
+	for k,stat in orderedPairs(statChanges) do
+		statName = stat[1]
 		
 		-- If it's a resistance, the localized strings are wrong and need to be converted to a second style to work
-		convertedName = self.resistanceNames[name] or name
+		convertedName = self.resistanceNames[statName] or statName
 		
-		val = v[2]+0
-		if self:StatIsEnabled(name) then
-			if (val > 0) then
+		statValue = stat[2]+0
+		if self:StatIsEnabled(statName) then
+			if (statValue > 0) then
 				if self.noNumberStats[convertedName] then
 					tooltip:AddLine("|cff00ff00+".._G[convertedName])
 				else
-					tooltip:AddLine("|cff00ff00+"..val.."|cffffffff ".._G[convertedName])
+					tooltip:AddLine("|cff00ff00+"..statValue.."|cffffffff ".._G[convertedName])
 				end
-			elseif (val < 0) then
+			elseif (statValue < 0) then
 				if self.noNumberStats[convertedName] then
 					tooltip:AddLine("|cffff0000-".._G[convertedName])
 				else
-					tooltip:AddLine("|cffff0000"..val.."|cffffffff ".._G[convertedName])
+					tooltip:AddLine("|cffff0000"..statValue.."|cffffffff ".._G[convertedName])
 				end
 			end
 		end
@@ -544,10 +544,10 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	local newStats = GetItemStats(itemLink)
 	
 	-- Quit if the item has a stat that we're hiding
-	for k,v in pairs(newStats) do
-		if (k == "ITEM_MOD_AGILITY_SHORT" and v > 0 and SimpleStats.db.profile.hideagility)
-		or (k == "ITEM_MOD_STRENGTH_SHORT" and v > 0 and SimpleStats.db.profile.hidestrength)
-		or (k == "ITEM_MOD_INTELLECT_SHORT" and v > 0 and SimpleStats.db.profile.hideintellect) then
+	for statName,statValue in pairs(newStats) do
+		if (statName == "ITEM_MOD_AGILITY_SHORT"   and statValue > 0 and SimpleStats.db.profile.hideagility)
+		or (statName == "ITEM_MOD_STRENGTH_SHORT"  and statValue > 0 and SimpleStats.db.profile.hidestrength)
+		or (statName == "ITEM_MOD_INTELLECT_SHORT" and statValue > 0 and SimpleStats.db.profile.hideintellect) then
 			return
 		end
 	end
@@ -682,9 +682,9 @@ function SimpleStats:SetupTables()								-- Sets up all of the utility/data tab
 	self.order = {}
 	
 	local count = 0
-	for k,v in pairs(orderInverse) do
+	for k,statName in pairs(orderInverse) do
 		count = count+1
-		self.order[v] = k
+		self.order[statName] = k
 	end
 	
 	-- Store a count of items in self.order for later use in SortStats()
