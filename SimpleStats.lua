@@ -425,10 +425,10 @@ function SimpleStats:CheckArmorType(armorType)					-- Determines whether this ar
 end
 
 function SimpleStats:IsWeapon2H(itemLink)						-- Returns whether the given weapon takes up both weapon slots
-	local _,_,_,_,_,_,subType,_,invType = GetItemInfo(itemLink)
-	
-	-- RANGEDRIGHT requires an additional check since wands are RANGEDRIGHT but CAN be wielded with an off-hand
 	if itemLink then
+		local _,_,_,_,_,_,subType,_,invType = GetItemInfo(itemLink)
+		
+		-- RANGEDRIGHT requires an additional check since wands are RANGEDRIGHT but CAN be wielded with an off-hand
 		if invType == "INVTYPE_2HWEAPON"
 		or invType == "INVTYPE_RANGED"
 		or (invType == "INVTYPE_RANGEDRIGHT" and subType ~= self.localized.weapons.wands) then
@@ -529,7 +529,7 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	end
 	
 	-- Retrieve data about the main-hand weapon for use later
-	local currentMainHand
+	local currentMainHand = {}
 	if GetInventoryItemLink("player",16) then
 		local _,mhItemLink,_,mhItemLevel,_,_,mhSubType,_,mhInvType = GetItemInfo(GetInventoryItemLink("player",16))
 		
