@@ -532,14 +532,14 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 		local _,mhItemLink,_,mhItemLevel,_,_,mhSubType,_,mhInvType = GetItemInfo(GetInventoryItemLink("player",16))
 		
 		currentMainHand = {
-			itemLink = mhItemLink,
-			itemLevel = mhItemLevel,
+			link = mhItemLink,
+			level = mhItemLevel,
 			subType = mhSubType,
 			invType = mhInvType,
 		}
 	end
 	
-	local equippedIs2HWeapon = SimpleStats:IsWeapon2H(currentMainHand.itemLink)
+	local equippedIs2HWeapon = SimpleStats:IsWeapon2H(currentMainHand.link)
 	
 	local newStats = GetItemStats(itemLink)
 	
@@ -589,8 +589,8 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link, equippedItems[2].link))
 	
 	elseif SimpleStats.invTypes[invType] == 17 and equippedIs2HWeapon then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
-		SimpleStats:PrintItemLevelDiff(self, itemLevel, currentMainHand.itemLevel)
-		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(currentMainHand.itemLink))
+		SimpleStats:PrintItemLevelDiff(self, itemLevel, currentMainHand.level)
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(currentMainHand.link))
 		
 	else
 		SimpleStats:PrintItemLevelDiff(self, itemLevel, equippedItems[1].level)
