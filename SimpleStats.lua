@@ -272,36 +272,26 @@ function SimpleStats:StatIsEnabled(statName)		-- Returns whether the given stat 
 	end
 end
 
-function SimpleStats:PrintStats(tooltip,newStats,currentStats,currentStats2) -- Takes a tooltip, new stats, and existing stats (one or two tables) and prints the stat change
-	local tchanged = {}
-	
-	if currentStats2 then -- Comparing two existing items, so merge currentStats2 into currentStats
-		for k,v in pairs(currentStats2) do
-			if currentStats[k] then
-				currentStats[k] = currentStats[k] + v
-			else
-				currentStats[k] = v
-			end
-		end
-	end
+function SimpleStats:PrintStats(tooltip,newStats,currentStats) -- Takes a tooltip, new stats, and existing stats, and prints the stat change
+	local statChanges = {}
 
 	for k,v in pairs(newStats) do
 		if currentStats[k] then -- Stat exists on both, do subtraction
-			tchanged[k] = newStats[k] - currentStats[k]
+			statChanges[k] = newStats[k] - currentStats[k]
 		else -- New stat, just use the value
-			tchanged[k] = newStats[k]
+			statChanges[k] = newStats[k]
 		end
 	end
 	
 	for k,v in pairs(currentStats) do
 		if not newStats[k] then
-			tchanged[k] = -v
+			statChanges[k] = -v
 		end
 	end
 	
-	local stats = self:SortStats(tchanged)
+	statChanges = self:SortStats(statChanges)
 	
-	for k,v in orderedPairs(stats) do
+	for k,v in orderedPairs(statChanges) do
 		name = v[1]
 		
 		-- If it's a resistance, the localized strings are wrong and need to be converted to a second style to work
@@ -324,18 +314,25 @@ function SimpleStats:PrintStats(tooltip,newStats,currentStats,currentStats2) -- 
 			end
 		end
 	end
-	
-	if (tooltip:GetName() == "GameTooltip") then
-		tooltip:Show()
-	end
 end
 
-function SimpleStats:GetCurrentStats(itemLink)		-- Returns the stats for the given itemlink
-	if (itemLink == nil) then
-		return {}
-	else
-		return GetItemStats(itemLink)
+function SimpleStats:CombineItemStats(itemLink1,itemLink2)
+	local combinedStats = {}
+	if itemLink1 then
+		combinedStats = GetItemStats(itemLink1)
+		
+		if itemLink2 then
+			for statName,statValue in pairs(GetItemStats(itemLink2)) do
+				if combinedStats[statName] then
+					combinedStats[statName] = combinedStats[statName] + statValue
+				else
+					combinedStats[statName] = statValue
+				end
+			end
+		end
 	end
+	
+	return combinedStats
 end
 
 function SimpleStats:CheckWeaponType(weaponType)	-- Determines whether this weapon type should have stats printed for it (taking into account settings)
@@ -373,6 +370,10 @@ function SimpleStats:CheckWeaponType(weaponType)	-- Determines whether this weap
 end
 
 function SimpleStats:CheckArmorType(armorType)		-- Determines whether this armor type should have stats printed for it (taking into account settings)
+	if armorType == self.localized.armor.miscellaneous then
+		return true -- If it's misc. armor (trinket, ring, etc.), always show
+	end
+	
 	local _,class = UnitClass("player")
 	local level = UnitLevel("player")
 	local usability
@@ -398,109 +399,116 @@ function SimpleStats:CheckArmorType(armorType)		-- Determines whether this armor
 	end
 end
 
+function SimpleStats:IsWeapon2H(itemLink)			-- Returns whether the given weapon takes up both weapon slots
+	local _,_,_,_,_,_,subType,_,invType = GetItemInfo(itemLink)
+	
+	-- RANGEDRIGHT requires an additional check since wands are RANGEDRIGHT but CAN be wielded with an off-hand
+	if itemLink then
+		if invType == "INVTYPE_2HWEAPON"
+		or invType == "INVTYPE_RANGED"
+		or (invType == "INVTYPE_RANGEDRIGHT" and subType ~= self.localized.weapons.wands) then
+			return true
+		end
+	end
+	
+	return false
+end
+
 function SimpleStats:HandleTooltip(self, ...)		-- Tooltip handler, parses a tooltip and modifies it with the stat changes
-	local name, item = self:GetItem()
-	if item then -- If this is an item tooltip
-		local _,link,rarity,_,_,type,subtype,_,loc = GetItemInfo(item)
+	local _,itemLink = self:GetItem()
+	if not itemLink then return end -- Quit if this isn't an item tooltip
+	
+	local _,_,rarity,_,_,itemType,itemSubType,_,invType = GetItemInfo(itemLink)
+	local itemID = tonumber(strmatch(itemLink,"item:(%d+):"))
+	
+	-- Quit if:
+	if (itemType ~= SimpleStats.localized.armorName and itemType ~= SimpleStats.localized.weaponName)								-- It's not armor or a weapon
+	or (invType == "INVTYPE_TABARD" or invType == "INVTYPE_BODY")																	-- It's a shirt or tabard
+	or (rarity < SimpleStats.db.profile.minquality+1)																				-- It's below our current quality threshold
+	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
+	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType)) then							-- It's a weapon and doesn't match our weapon settings
+		return
+	end
+	
+	-- Get data on currently equipped items
+	local equippedItems = {[1]={}, [2]={}}
+	equippedItems[1].id = GetInventoryItemID("player",SimpleStats.invTypes[invType])
+	equippedItems[1].link = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
+	
+	-- Get data on second equipped item if in a dual slot (ring, trinket, weapon)
+	if SimpleStats.twoSlotInvTypes[invType] then
+		equippedItems[2].id = GetInventoryItemID("player",SimpleStats.invTypes[invType]+1)
+		equippedItems[2].link = GetInventoryItemLink("player",SimpleStats.invTypes[invType]+1)
+	end
+	
+	-- Quit if the (id,suffix,bonuses) equals the first equipped (id,suffix,bonuses), AND second if it exists
+	if itemID == equippedItems[1].id and (not equippedItems[2].id or itemID == equippedItems[2].id) then
+		return
+	end
+	
+	-- Retrieve data about the main-hand weapon for use later
+	local currentMainHand
+	if GetInventoryItemLink("player",16) then
+		local _,mhItemLink,_,_,_,_,mhSubType,_,mhInvType = GetItemInfo(GetInventoryItemLink("player",16))
 		
-		if not link then return end -- Workaround for obscure bug popping up saying link is nil
-		
-		local id = tonumber(strmatch(link,"item:(%d+):"))
-		local equipid = GetInventoryItemID("player",SimpleStats.invTypes[loc])
-		
-		if type ~= SimpleStats.localized.armorName and type ~= SimpleStats.localized.weaponName then return end								-- If it's not armor or a weapon, quit
-		if rarity-1 < SimpleStats.db.profile.minquality then return end													-- If it's below the current quality threshold, quit
-		if type == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(subtype) then return end								-- If it's a weapon and doesn't match our weapon settings, quit
-		if loc == "INVTYPE_TABARD" or loc == "INVTYPE_BODY" then return end												-- Filter out shirts/tabards
-		
-		if type == SimpleStats.localized.armorName and subtype ~= SimpleStats.localized.armor.miscellaneous and loc ~= "INVTYPE_CLOAK" then	-- Filter out disabled armor types (always show for Misc items and cloaks)
-			if not SimpleStats:CheckArmorType(subtype) then return end
+		currentMainHand = {
+			itemLink = mhItemLink,
+			subType = mhSubType,
+			invType = mhInvType,
+		}
+	end
+	
+	local equippedIs2HWeapon = SimpleStats:IsWeapon2H(currentMainHand.itemLink)
+	
+	local newStats = GetItemStats(itemLink)
+	
+	-- Quit if the item has a stat that we're hiding
+	for k,v in pairs(newStats) do
+		if (k == "ITEM_MOD_AGILITY_SHORT" and v > 0 and SimpleStats.db.profile.hideagility)
+		or (k == "ITEM_MOD_STRENGTH_SHORT" and v > 0 and SimpleStats.db.profile.hidestrength)
+		or (k == "ITEM_MOD_INTELLECT_SHORT" and v > 0 and SimpleStats.db.profile.hideintellect) then
+			return
 		end
-		
-		if id == equipid and not SimpleStats.twoSlotInvTypes[loc] then return end														-- If we have the same item equipped, and it's not a trinket/1H wep/ring, quit
-		
-		local e1link = GetInventoryItemLink("player",SimpleStats.invTypes[loc])
-		local e2link,firstloc
-		
-		if SimpleStats.invTypes[loc] == 11 or SimpleStats.invTypes[loc] == 13 or SimpleStats.invTypes[loc] == 16 then
-			equipid2 = GetInventoryItemLink("player",SimpleStats.invTypes[loc]+1)
-		end
-		
-		if SimpleStats.invTypes[loc] == 11 or SimpleStats.invTypes[loc] == 13 or SimpleStats.invTypes[loc] == 16 then
-			e2link = GetInventoryItemLink("player",SimpleStats.invTypes[loc]+1)
-		end
-		
-		if SimpleStats.invTypes[loc] == 17 or loc == "INVTYPE_WEAPON" then -- If we're looking at an off-hand, get the main-hand type
-			if GetInventoryItemLink("player",16) then
-				_,_,_,_,_,_,_,_,firstloc = GetItemInfo(GetInventoryItemLink("player",16))
-			end
-		end
-		
-		local soloEquipped = false -- true if the weapon cannot be equipped with a second weapon
-		if loc == "INVTYPE_2HWEAPON" or loc == "INVTYPE_RANGED" or (loc == "INVTYPE_RANGEDRIGHT" and subtype ~= SimpleStats.localized.weapons.wands) then
-			soloEquipped = true
-		end
-		
-		local curSoloEquipped = false -- true if the weapon in first weapon slot cannot be equipped with a second weapon
-		if GetInventoryItemLink("player",16) ~= nil then
-			local _,_,_,_,_,_,firstwepsubtype,_,firstweptype = GetItemInfo(GetInventoryItemLink("player",16))
-			if firstweptype == "INVTYPE_2HWEAPON" or firstweptype == "INVTYPE_RANGED" or (firstweptype == "INVTYPE_RANGEDRIGHT" and firstwepsubtype ~= SimpleStats.localized.weapons.wands) then
-				curSoloEquipped = true
-			end
-		end
-		
-		-- loc = weapon slot of new item
-		-- firstloc = currently equipped weapon, used for comparison
-		-- e1link = weapon in slot the new weapon is placed in
-		-- e2link = in case of ring, trinket, or weapon: weapon in second ring, trinket, or weapon (offhand) slot
-		
-		local newStats = GetItemStats(link)
-		
-		for k,v in pairs(newStats) do
-			if	(k == "ITEM_MOD_AGILITY_SHORT" and v > 0 and SimpleStats.db.profile.hideagility) or
-				(k == "ITEM_MOD_STRENGTH_SHORT" and v > 0 and SimpleStats.db.profile.hidestrength) or
-				(k == "ITEM_MOD_INTELLECT_SHORT" and v > 0 and SimpleStats.db.profile.hideintellect) then
-				return false end
-		end
-		
+	end
+	
+	self:AddLine(" ")
+	
+	if invType == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
+		self:AddLine("Trinket 1:")
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
 		self:AddLine(" ")
+		self:AddLine("Trinket 2:")
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[2].link))
 		
-		if loc == "INVTYPE_TRINKET" then -- If the item is a trinket, show stat changes for both trinkets
-			self:AddLine("Trinket 1:")
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
-			self:AddLine(" ")
-			self:AddLine("Trinket 2:")
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e2link))
-			
-		elseif loc == "INVTYPE_FINGER" then -- If the item is a ring, show stat changes for both rings
-			self:AddLine("Ring 1:")
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
-			self:AddLine(" ")
-			self:AddLine("Ring 2:")
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e2link))
-			
-		elseif loc == "INVTYPE_WEAPON" then -- If the item is a 1H weapon, show stat changes for both weapon slots
-			if curSoloEquipped==false then self:AddLine("Weapon 1:") end
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
-			
-			if curSoloEquipped==false then -- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
-				self:AddLine(" ")
-				self:AddLine("Weapon 2:")
-				SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e2link))
-			end
-			
-		elseif (soloEquipped==true) and equipid2 then -- Looking at a 2H and two 1H are equipped, so combine their stats
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link), SimpleStats:GetCurrentStats(e2link))
+	elseif invType == "INVTYPE_FINGER" then -- If the item is a ring, show stat changes for both rings
+		self:AddLine("Ring 1:")
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
+		self:AddLine(" ")
+		self:AddLine("Ring 2:")
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[2].link))
 		
-		elseif SimpleStats.invTypes[loc] == 17 and firstloc == "INVTYPE_2HWEAPON" then -- If comparing an offhand and a 2h weapon, don't act like both can be equipped
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16)))
-			
-		elseif loc == "INVTYPE_HOLDABLE" and curSoloEquipped==true then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(GetInventoryItemLink("player",16)))
-			
-		elseif id ~= equipid then -- else, but only if the item isn't already equipped
-			SimpleStats:PrintStats(self, newStats, SimpleStats:GetCurrentStats(e1link))
+	elseif invType == "INVTYPE_WEAPON" then -- If the item is a 1H weapon, show stat changes for both weapon slots
+		if not equippedIs2HWeapon then self:AddLine("Weapon 1:") end
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
+		
+		if not equippedIs2HWeapon then -- If the player has a 2H weapon equipped, don't show a second, identical stat change for the second slot
+			self:AddLine(" ")
+			self:AddLine("Weapon 2:")
+			SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[2].link))
 		end
+		
+	elseif SimpleStats:IsWeapon2H(itemLink) and equippedItems[2].id then -- Looking at a 2H and two 1H are equipped, so combine their stats
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link, equippedItems[2].link))
+	
+	elseif SimpleStats.invTypes[invType] == 17 and equippedIs2HWeapon then -- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(currentMainHand.itemLink))
+		
+	else
+		SimpleStats:PrintStats(self, newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
+	end
+	
+	if (self:GetName() == "GameTooltip") then
+		self:Show()
 	end
 end
 
