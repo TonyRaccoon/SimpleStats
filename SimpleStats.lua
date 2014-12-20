@@ -543,13 +543,23 @@ function SimpleStats:HandleTooltip(self, ...)					-- Tooltip handler, parses a t
 	
 	local newStats = GetItemStats(itemLink)
 	
-	-- Quit if the item has a stat that we're hiding
+	-- Collect primary stats on the item for use below
+	local primaryStats = {agi=0, str=0, int=0}
 	for statName,statValue in pairs(newStats) do
-		if (statName == "ITEM_MOD_AGILITY_SHORT"   and statValue > 0 and SimpleStats.db.profile.hideagility)
-		or (statName == "ITEM_MOD_STRENGTH_SHORT"  and statValue > 0 and SimpleStats.db.profile.hidestrength)
-		or (statName == "ITEM_MOD_INTELLECT_SHORT" and statValue > 0 and SimpleStats.db.profile.hideintellect) then
-			return
+		if     statName == "ITEM_MOD_AGILITY_SHORT"   then primaryStats.agi = statValue
+		elseif statName == "ITEM_MOD_STRENGTH_SHORT"  then primaryStats.str = statValue
+		elseif statName == "ITEM_MOD_INTELLECT_SHORT" then primaryStats.int = statValue
 		end
+	end
+	
+	-- Hide comparison if it has primary stats, has primary stats we're hiding, and DOESN'T have stats we're NOT hiding
+	-- So an Int item is hidden if we're hiding Int, but if it also has Agi and we're not hiding it, show it since it's still useful
+	-- But if it has no primary stats at all (like trinkets, often), never hide it
+	if (primaryStats.agi > 0 or primaryStats.int > 0 or primaryStats.str > 0)
+	and ((primaryStats.agi > 0 and SimpleStats.db.profile.hideagility)   or primaryStats.agi == 0)
+	and ((primaryStats.str > 0 and SimpleStats.db.profile.hidestrength)  or primaryStats.str == 0)
+	and ((primaryStats.int > 0 and SimpleStats.db.profile.hideintellect) or primaryStats.int == 0) then
+		return
 	end
 	
 	self:AddLine(" ")
