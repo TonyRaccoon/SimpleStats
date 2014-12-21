@@ -2,7 +2,7 @@
 ## Title: SimpleStats
 ## Notes: Simple addon to show stat changes in item tooltips
 ## Author: Foxthorn
-## Version: 1.3
+## Version: 1.4
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 ## SavedVariables: SimpleStatsDB
