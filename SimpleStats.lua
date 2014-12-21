@@ -654,12 +654,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	else
 		--SimpleStats:GetItemLevelDiff(self, itemLevel, equippedItems[1].level)
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
-		
-		if lines then
-			for k,line in pairs(lines) do
-				tinsert(tooltipLines, line)
-			end
-		end
+		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 	end
 	
 	for k,line in pairs(tooltipLines) do
