@@ -508,6 +508,28 @@ function SimpleStats:MergeTooltipLines(lines, newLines, headerLine)		-- Takes a 
 	return lines
 end
 
+function SimpleStats:CanDualWield()										-- Determines whether the character can dual-wield
+	local _,class = UnitClass("player")
+	local level = UnitLevel("player")
+	local specSlot = GetSpecialization()
+	local specID
+	
+	if specSlot then
+		specID = GetSpecializationInfo(specSlot)
+	end
+	
+	if class == "HUNTER"											-- Hunters can always DW
+	or class == "DEATHKNIGHT"										-- DKs can always DW
+	or class == "ROGUE"												-- Rogues can always DW
+	or (class == "WARRIOR" and specID == 72)						-- Fury warriors can DW
+	or (class == "SHAMAN" and specID == 263)						-- Enhance shamans can DW
+	or (class == "MONK" and (specID == 268 or specID == 269)) then	-- Brewmaster and Windwalker monks can DW
+		return true
+	else
+		return false
+	end
+end
+
 function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a tooltip and modifies it with the stat changes
 	local _,itemLink = self:GetItem()
 	if not itemLink then return end -- Quit if this isn't an item tooltip
@@ -625,13 +647,20 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- If the item is a 1H weapon, show stat changes for both weapon slots, but if we don't have any weapons, just show one stat comparison ('else' below)
 	-- Also, if we're wielding a 2H, show a standard comparison against it ('else' below)
 	elseif invType == "INVTYPE_WEAPON" and (equippedItems[1].link or equippedItems[2].link) and not equippedIs2HWeapon then
-		--SimpleStats:GetItemLevelDiff(self, itemLevel, equippedItems[1].level)
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 1:")
-		
-		--SimpleStats:GetItemLevelDiff(self, itemLevel, equippedItems[2].level)
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 2:")
+		-- If the character can't dual wield, don't show two comparisons since it can only go in the first slot
+		if SimpleStats:CanDualWield() then
+			--SimpleStats:GetItemLevelDiff(self, itemLevel, equippedItems[1].level)
+			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
+			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 1:")
+			
+			--SimpleStats:GetItemLevelDiff(self, itemLevel, equippedItems[2].level)
+			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
+			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 2:")
+		else -- Functionally the same as 'else' below
+			--SimpleStats:GetItemLevelDiff(self, itemLevel, equippedItems[1].level)
+			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
+			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
+		end
 	
 	-- Looking at a 2H and two 1H are equipped, so combine their stats
 	elseif SimpleStats:IsWeapon2H(itemLink) and equippedItems[1].id and equippedItems[2].id then
