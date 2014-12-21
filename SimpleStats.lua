@@ -1,5 +1,9 @@
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
+-- Retrieve localization table
+local ADDON_NAME,namespace = ...
+local L = namespace.L
+
 SimpleStats.defaults = {												-- Default settings
 	profile = {
 		RESISTANCE0_NAME = false,
@@ -43,194 +47,194 @@ SimpleStats.options = {													-- Settings GUI table
 	args = {
 		minquality = {
 			type = "select",
-			name = "Minimum item quality",
-			desc = "Stat comparisons will only be shown on items with this quality or higher",
+			name = L["Minimum item quality"],
+			desc = L["Stat comparisons will only be shown on items with this quality or higher"],
 			values = {ITEM_QUALITY2_DESC, ITEM_QUALITY3_DESC, ITEM_QUALITY4_DESC},
 			order = 10,
 			width = "double",
 		},
 		usableweapons = {
 			type = "select",
-			name = "Show on weapon types:",
-			desc = "Controls which types of weapons stat comparisons will be shown on",
-			values = {"All", "Only usable by current class", "Only useful to current class", "Only useful to current specialization"},
+			name = L["Show on weapon types:"],
+			desc = L["Controls which types of weapons stat comparisons will be shown on"],
+			values = {L["All"], L["Only usable by current class"], L["Only useful to current class"], L["Only useful to current specialization"]},
 			order = 20,
 			width = "double",
 		},
 		usablearmor = {
 			type = "select",
-			name = "Show on armor types:",
-			desc = "Controls which types of armor stat comparisons will be shown on",
-			values = {"All", "Only wearable by current class", "Only useful to current class"},
+			name = L["Show on armor types:"],
+			desc = L["Controls which types of armor stat comparisons will be shown on"],
+			values = {L["All"], L["Only wearable by current class"], L["Only useful to current class"]},
 			order = 30,
 			width = "double",
 		},
 		hideondisabledprimaries = {
 			type = "toggle",
-			name = "Hide comparison if disabled primary stat exists",
-			desc = "For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect.",
+			name = L["Hide comparison if disabled primary stat exists"],
+			desc = L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."],
 			order = 40,
 			width = "full"
 		},
 		
-		header2 = {type = "header", name = "Primary Stats", order = 90},
+		header2 = {type = "header", name = L["Primary Stats"], order = 90},
 		
 		ITEM_MOD_STRENGTH_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_STRENGTH_SHORT,
-			desc = "Show Strength in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_STRENGTH_SHORT),
 			order = 100,
 			width = "half"
 		},
 		ITEM_MOD_AGILITY_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_AGILITY_SHORT,
-			desc = "Show Agility in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_AGILITY_SHORT),
 			order = 110,
 			width = "half"
 		},
 		ITEM_MOD_INTELLECT_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_INTELLECT_SHORT,
-			desc = "Show Intellect in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_INTELLECT_SHORT),
 			order = 120,
 			width = "half"
 		},
 		ITEM_MOD_STAMINA_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_STAMINA_SHORT,
-			desc = "Show Stamina in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_STAMINA_SHORT),
 			order = 130,
 			width = "double"
 		},
 		RESISTANCE0_NAME = {
 			type = "toggle",
-			name = ITEM_MOD_STAMINA_SHORT,
-			desc = "Show Armor in stat comparisons",
+			name = RESISTANCE0_NAME,
+			desc = format(L["Show %s in stat comparisons"], RESISTANCE0_NAME),
 			order = 140,
 			width = "half"
 		},
 		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = {
 			type = "toggle",
-			name = "DPS",
-			desc = "Show weapon DPS in stat comparisons",
+			name = STAT_DPS_SHORT,
+			desc = format(L["Show %s in stat comparisons"], STAT_DPS_SHORT),
 			order = 150,
 			width = "half"
 		},
 		showitemlevel = {
 			type = "toggle",
-			name = "Item Level",
-			desc = "Show item level changes in stat comparisons",
+			name = STAT_AVERAGE_ITEM_LEVEL,
+			desc = format(L["Show %s in stat comparisons"], STAT_AVERAGE_ITEM_LEVEL:lower()),
 			order = 155,
 		},
 		
-		header3 = {type = "header", name = "Secondary Stats", order = 160},
+		header3 = {type = "header", name = L["Secondary Stats"], order = 160},
 		
 		ITEM_MOD_CRIT_RATING_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CRIT_RATING_SHORT,
-			desc = "Show Critical Strike in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CRIT_RATING_SHORT),
 			order = 170,
 		},
 		ITEM_MOD_HASTE_RATING_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_HASTE_RATING_SHORT,
-			desc = "Show Haste in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_HASTE_RATING_SHORT),
 			order = 180,
 		},
 		ITEM_MOD_MASTERY_RATING_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_MASTERY_RATING_SHORT,
-			desc = "Show Mastery in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_MASTERY_RATING_SHORT),
 			order = 190,
 		},
 		ITEM_MOD_CR_MULTISTRIKE_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_MULTISTRIKE_SHORT,
-			desc = "Show Multistrike in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_MULTISTRIKE_SHORT),
 			order = 200,
 		},
 		ITEM_MOD_VERSATILITY = {
 			type = "toggle",
 			name = ITEM_MOD_VERSATILITY,
-			desc = "Show Versatility in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_VERSATILITY),
 			order = 210,
 		},
 		resistance = {
 			type = "toggle",
-			name = "Resistances",
-			desc = "Show resistances in stat comparisons",
+			name = RESISTANCE_LABEL,
+			desc = format(L["Show %s in stat comparisons"], RESISTANCE_LABEL:lower()),
 			order = 220,
 		},
 		ITEM_MOD_SPIRIT_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_SPIRIT_SHORT,
-			desc = "Show Spirit in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_SPIRIT_SHORT),
 			order = 230,
 		},
 		ITEM_MOD_SPELL_POWER_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_SPELL_POWER_SHORT,
-			desc = "Show Spell Power in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_SPELL_POWER_SHORT),
 			order = 240,
 			width = "double"
 		},
 		ITEM_MOD_PVP_POWER_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_PVP_POWER_SHORT,
-			desc = "Show PvP Power in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_PVP_POWER_SHORT),
 			order = 250,
 		},
 		ITEM_MOD_RESILIENCE_RATING_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_RESILIENCE_RATING_SHORT,
-			desc = "Show PvP Resilience in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_RESILIENCE_RATING_SHORT),
 			order = 260,
 		},
 		
 		
-		header4 = {type = "header", name = "Minor Stats", order = 270},
+		header4 = {type = "header", name = L["Minor Stats"], order = 270},
 		
 		sockets = {
 			type = "toggle",
-			name = "Gem Sockets",
-			desc = "Show gem sockets in stat comparisons",
+			name = L["Gem Sockets"],
+			desc = format(L["Show %s in stat comparisons"], L["Gem Sockets"]:lower()),
 			order = 280,
 		},
 		ITEM_MOD_CR_STURDINESS_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_STURDINESS_SHORT,
-			desc = "Show the Indestructible attribute in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_STURDINESS_SHORT),
 			order = 290,
 		},
 		ITEM_MOD_CR_LIFESTEAL_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_LIFESTEAL_SHORT,
-			desc = "Show Leech in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_LIFESTEAL_SHORT),
 			order = 300,
 		},
 		ITEM_MOD_CR_AVOIDANCE_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_AVOIDANCE_SHORT,
-			desc = "Show Avoidance in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_AVOIDANCE_SHORT),
 			order = 310,
 		},
 		ITEM_MOD_CR_SPEED_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_SPEED_SHORT,
-			desc = "Show Speed in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_SPEED_SHORT),
 			order = 300,
 		},
 		--[[ITEM_MOD_CR_AMPLIFY_SHORT = {
 			type = "toggle",a
 			name = ITEM_MOD_CR_AMPLIFY_SHORT,
-			desc = "Show Amplify in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_AMPLIFY_SHORT),
 			order = 310,
 		},
 		ITEM_MOD_CR_CLEAVE_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_CLEAVE_SHORT,
-			desc = "Show Cleave in stat comparisons",
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_CLEAVE_SHORT),
 			order = 320,
 		},]]
 	}
@@ -249,7 +253,7 @@ function SimpleStats:ChatCommand(input)									-- Chat command handler
 		InterfaceOptionsFrame_OpenToCategory(self.optionsFrame)
 	
 	elseif (input == "v" or input == "ver" or input == "version") then
-		self:Print("Version: "..GetAddOnMetadata("SimpleStats","Version"))
+		self:Print(GAME_VERSION_LABEL..": "..GetAddOnMetadata("SimpleStats","Version"))
 	
 	elseif (input == "profile" or input == "profiles") then
 		InterfaceOptionsFrame_OpenToCategory(self.profileFrame)

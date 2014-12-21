@@ -1,10 +1,22 @@
-## Interface: 60000
+﻿## Interface: 60000
 ## Title: SimpleStats
-## Notes: Simple addon to show stat changes in item tooltips
+## Notes: Shows customizable stat comparisons in item tooltips
+## Notes-esES: Shows customizable stat comparisons in item tooltips
+## Notes-esMX: Shows customizable stat comparisons in item tooltips
+## Notes-deDE: Shows customizable stat comparisons in item tooltips
+## Notes-frFR: Shows customizable stat comparisons in item tooltips
+## Notes-itIT: Shows customizable stat comparisons in item tooltips
+## Notes-ptBR: Shows customizable stat comparisons in item tooltips
+## Notes-ptPT: Shows customizable stat comparisons in item tooltips
+## Notes-ruRU: Shows customizable stat comparisons in item tooltips
+## Notes-koKR: Shows customizable stat comparisons in item tooltips
+## Notes-zhCN: Shows customizable stat comparisons in item tooltips
+## Notes-zhTW: Shows customizable stat comparisons in item tooltips
 ## Author: Foxthorn
 ## Version: 1.4
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 ## SavedVariables: SimpleStatsDB
 embeds.xml
+localization.lua
 SimpleStats.lua
