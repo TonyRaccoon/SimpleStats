@@ -1,5 +1,6 @@
 SimpleStats = LibStub("AceAddon-3.0"):NewAddon("SimpleStats", "AceConsole-3.0", "AceEvent-3.0", "AceHook-3.0")
 
+--- Settings stuff ---
 SimpleStats.defaults = {												-- Default settings
 	profile = {
 		RESISTANCE0_NAME = false,
@@ -33,6 +34,39 @@ SimpleStats.defaults = {												-- Default settings
 		hideintellect = false,
 		minquality = 1,
 		showitemlevel = true,
+		
+		statorder = table.concat({
+			"1   -- "..RESISTANCE0_NAME,
+			"2   -- "..ITEM_MOD_DAMAGE_PER_SECOND_SHORT,
+			"3   -- "..ITEM_MOD_AGILITY_SHORT,
+			"4   -- "..ITEM_MOD_STRENGTH_SHORT,
+			"5   -- "..ITEM_MOD_INTELLECT_SHORT,
+			"6   -- "..ITEM_MOD_STAMINA_SHORT,
+			"7   -- "..ITEM_MOD_SPIRIT_SHORT,
+			"8   -- "..ITEM_MOD_CRIT_RATING_SHORT,
+			"9   -- "..ITEM_MOD_HASTE_RATING_SHORT,
+			"10 -- "..ITEM_MOD_MASTERY_RATING_SHORT,
+			"11 -- "..ITEM_MOD_SPELL_POWER_SHORT,
+			"12 -- "..ITEM_MOD_CR_MULTISTRIKE_SHORT,
+			"13 -- "..ITEM_MOD_VERSATILITY,
+			"14 -- "..ITEM_MOD_PVP_POWER_SHORT,
+			"15 -- "..ITEM_MOD_RESILIENCE_RATING_SHORT,
+			"16 -- "..RESISTANCE2_NAME,
+			"17 -- "..RESISTANCE3_NAME,
+			"18 -- "..RESISTANCE4_NAME,
+			"19 -- "..RESISTANCE5_NAME,
+			"20 -- "..RESISTANCE6_NAME,
+			"21 -- "..EMPTY_SOCKET_META,
+			"22 -- "..EMPTY_SOCKET_PRISMATIC,
+			"23 -- "..EMPTY_SOCKET_COGWHEEL,
+			"24 -- "..EMPTY_SOCKET_RED,
+			"25 -- "..EMPTY_SOCKET_BLUE,
+			"26 -- "..EMPTY_SOCKET_YELLOW,
+			"27 -- "..ITEM_MOD_CR_STURDINESS_SHORT,
+			"28 -- "..ITEM_MOD_CR_LIFESTEAL_SHORT,
+			"29 -- "..ITEM_MOD_CR_AVOIDANCE_SHORT,
+			"30 -- "..ITEM_MOD_CR_SPEED_SHORT,
+		},"\n")
 	}
 }
 SimpleStats.options = {													-- Settings GUI table
@@ -225,6 +259,22 @@ SimpleStats.options = {													-- Settings GUI table
 		}
 	}
 }
+SimpleStats.optionsStatOrder = {
+	name = "Stat Order",
+	handler = SimpleStats,
+	type = "group",
+	get = "get",
+	set = "set",
+	
+	args = {
+		statorder = {
+			type = "input",
+			name = "Stat order",
+			multiline = 21,
+			width = "double"
+		}
+	}
+}
 function SimpleStats:get(key)											-- Getter function for settings, used by options table
 	return self.db.profile[key[1]]
 end
@@ -270,6 +320,8 @@ function SimpleStats:SortStats(changedStats)							-- Takes a table of stat chan
 		if self.order[statName] then
 			local pos = self.order[statName]
 			sortedStats[pos] = {statName,statChange}
+		else
+			
 		end
 	end
 	
@@ -735,7 +787,52 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 	}
 	
 	-- Define the order that stats should appear in in tooltips
-	local orderInverse = {
+	
+	local statOrderIDs = {
+		[1]  = "RESISTANCE0_NAME",
+		[2]  = "ITEM_MOD_DAMAGE_PER_SECOND_SHORT",
+		[3]  = "ITEM_MOD_AGILITY_SHORT",
+		[4]  = "ITEM_MOD_STRENGTH_SHORT",
+		[5]  = "ITEM_MOD_INTELLECT_SHORT",
+		[6]  = "ITEM_MOD_STAMINA_SHORT",
+		[7]  = "ITEM_MOD_SPIRIT_SHORT",
+		[8]  = "ITEM_MOD_CRIT_RATING_SHORT",
+		[9]  = "ITEM_MOD_HASTE_RATING_SHORT",
+		[10] = "ITEM_MOD_MASTERY_RATING_SHORT",
+		[11] = "ITEM_MOD_SPELL_POWER_SHORT",
+		[12] = "ITEM_MOD_CR_MULTISTRIKE_SHORT",
+		[13] = "ITEM_MOD_VERSATILITY",
+		[14] = "ITEM_MOD_PVP_POWER_SHORT",
+		[15] = "ITEM_MOD_RESILIENCE_RATING_SHORT",
+		[16] = "RESISTANCE2_NAME",
+		[17] = "RESISTANCE3_NAME",
+		[18] = "RESISTANCE4_NAME",
+		[19] = "RESISTANCE5_NAME",
+		[20] = "RESISTANCE6_NAME",
+		[21] = "EMPTY_SOCKET_META",
+		[22] = "EMPTY_SOCKET_PRISMATIC",
+		[23] = "EMPTY_SOCKET_COGWHEEL",
+		[24] = "EMPTY_SOCKET_RED",
+		[25] = "EMPTY_SOCKET_BLUE",
+		[26] = "EMPTY_SOCKET_YELLOW",
+		[27] = "ITEM_MOD_CR_STURDINESS_SHORT",
+		[28] = "ITEM_MOD_CR_LIFESTEAL_SHORT",
+		[29] = "ITEM_MOD_CR_AVOIDANCE_SHORT",
+		[30] = "ITEM_MOD_CR_SPEED_SHORT",
+	}
+	
+	local orderInverse = {}
+	
+	for k,stat in pairs({strsplit("\n",self.db.profile.statorder)}) do
+		local id = tonumber(strmatch(stat, "\s*(%d+)"))
+		tinsert(orderInverse, statOrderIDs[id])
+	end
+	
+	for k,stat in pairs(statOrderIDs) do
+		
+	end
+	
+	--[[local orderInverse = {
 		"RESISTANCE0_NAME",
 		"ITEM_MOD_DAMAGE_PER_SECOND_SHORT",
 		"ITEM_MOD_AGILITY_SHORT",
@@ -757,7 +854,6 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 		"ITEM_MOD_VERSATILITY",
 		"ITEM_MOD_PVP_POWER_SHORT",
 		"ITEM_MOD_RESILIENCE_RATING_SHORT",
-		"RESISTANCE1_NAME",
 		"RESISTANCE2_NAME",
 		"RESISTANCE3_NAME",
 		"RESISTANCE4_NAME",
@@ -775,7 +871,7 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 		"ITEM_MOD_CR_SPEED_SHORT",
 		--"ITEM_MOD_CR_AMPLIFY_SHORT",
 		--"ITEM_MOD_CR_CLEAVE_SHORT",
-	}
+	}]]
 	
 	-- Convert order table to "STAT_NAME" => index instead of "STAT_NAME"
 	self.order = {}
@@ -1192,8 +1288,11 @@ function SimpleStats:OnInitialize()										-- Runs when addon is initialized
 	
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats", self.options)
 	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats Profile", profileOptions)
+	LibStub("AceConfig-3.0"):RegisterOptionsTable("SimpleStats Stat Order", self.optionsStatOrder)
+	
 	self.optionsFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats","SimpleStats")
 	self.profileFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats Profile", "Profiles", "SimpleStats")
+	self.statOrderFrame = LibStub("AceConfigDialog-3.0"):AddToBlizOptions("SimpleStats Stat Order", "Stat Order", "SimpleStats")
 	
 	self:RegisterChatCommand("ss", "ChatCommand")
 	self:RegisterChatCommand("simplestats", "ChatCommand")
