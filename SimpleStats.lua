@@ -1118,11 +1118,13 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 			["pre40"] = {
 				[self.localized.armor.cloth]	= 1,
 				[self.localized.armor.leather]	= 2,
+				[self.localized.armor.shields]	= 2,
 			},
 			["post40"] = {
 				[self.localized.armor.cloth]	= 1,
 				[self.localized.armor.leather]	= 1,
 				[self.localized.armor.mail]		= 2,
+				[self.localized.armor.shields]	= 2,
 			},
 		},
 		HUNTER = {
@@ -1141,12 +1143,14 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 				[self.localized.armor.cloth]	= 1,
 				[self.localized.armor.leather]	= 1,
 				[self.localized.armor.mail]		= 2,
+				[self.localized.armor.shields]	= 2,
 			},
 			["post40"] = {
 				[self.localized.armor.cloth]	= 1,
 				[self.localized.armor.leather]	= 1,
 				[self.localized.armor.mail]		= 1,
 				[self.localized.armor.plate]	= 2,
+				[self.localized.armor.shields]	= 2,
 			},
 		},
 		PALADIN = {
@@ -1154,12 +1158,14 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 				[self.localized.armor.cloth]	= 1,
 				[self.localized.armor.leather]	= 1,
 				[self.localized.armor.mail]		= 2,
+				[self.localized.armor.shields]	= 2,
 			},
 			["post40"] = {
 				[self.localized.armor.cloth]	= 1,
 				[self.localized.armor.leather]	= 1,
 				[self.localized.armor.mail]		= 1,
 				[self.localized.armor.plate]	= 2,
+				[self.localized.armor.shields]	= 2,
 			},
 		},
 		DEATHKNIGHT = {
