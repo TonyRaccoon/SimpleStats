@@ -28,11 +28,9 @@ SimpleStats.defaults = {												-- Default settings
 		
 		usableweapons = 4,
 		usablearmor = 3,
-		hideagility = false,
-		hidestrength = false,
-		hideintellect = false,
 		minquality = 1,
 		showitemlevel = true,
+		hideondisabledprimaries = false,
 	}
 }
 SimpleStats.options = {													-- Settings GUI table
@@ -66,6 +64,13 @@ SimpleStats.options = {													-- Settings GUI table
 			values = {"All", "Only wearable", "Only useful to current class"},
 			order = 30,
 			width = "double",
+		},
+		hideondisabledprimaries = {
+			type = "toggle",
+			name = "Hide comparison if disabled primary stat exists",
+			desc = "For example, hide comparisons on items with Agility if you're not showing Agility.\nComparisons will still be shown if the item also has a primary stat you're showing",
+			order = 40,
+			width = "full"
 		},
 		
 		header2 = {type = "header", name = "Primary Stats", order = 90},
@@ -202,27 +207,6 @@ SimpleStats.options = {													-- Settings GUI table
 			name = "Cleave",
 			order = 320,
 		},]]
-		
-		header5 = {type = "header", name = "Hide When Stat Exists", order = 340},
-		
-		hideagility = {
-			type = "toggle",
-			name = "Agility",
-			order = 350,
-			width = "half"
-		},
-		hidestrength = {
-			type = "toggle",
-			name = "Strength",
-			order = 360,
-			width = "half"
-		},
-		hideintellect = {
-			type = "toggle",
-			name = "Intellect",
-			order = 370,
-			width = "half"
-		}
 	}
 }
 function SimpleStats:get(key)											-- Getter function for settings, used by options table
@@ -604,13 +588,14 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 		end
 	end
 	
-	-- Hide comparison if it has primary stats, has primary stats we're hiding, and DOESN'T have stats we're NOT hiding
-	-- So an Int item is hidden if we're hiding Int, but if it also has Agi and we're not hiding it, show it since it's still useful
+	-- Hide comparison if it has primary stats, has primary stats we're not showing, and DOESN'T have stats we're showing
+	-- So an Int item is hidden if we're not showing Int, but if it also has Agi and we're showing that, show it since it's still useful
 	-- But if it has no primary stats at all (like trinkets, often), never hide it
 	if (primaryStats.agi > 0 or primaryStats.int > 0 or primaryStats.str > 0)
-	and ((primaryStats.agi > 0 and SimpleStats.db.profile.hideagility)   or primaryStats.agi == 0)
-	and ((primaryStats.str > 0 and SimpleStats.db.profile.hidestrength)  or primaryStats.str == 0)
-	and ((primaryStats.int > 0 and SimpleStats.db.profile.hideintellect) or primaryStats.int == 0) then
+	and SimpleStats.db.profile.hideondisabledprimaries
+	and ((primaryStats.agi > 0 and not SimpleStats.db.profile.ITEM_MOD_AGILITY_SHORT)   or primaryStats.agi == 0)
+	and ((primaryStats.str > 0 and not SimpleStats.db.profile.ITEM_MOD_STRENGTH_SHORT)  or primaryStats.str == 0)
+	and ((primaryStats.int > 0 and not SimpleStats.db.profile.ITEM_MOD_INTELLECT_SHORT) or primaryStats.int == 0) then
 		return
 	end
 	
