@@ -43,9 +43,9 @@ SimpleStats.options = {													-- Settings GUI table
 	args = {
 		minquality = {
 			type = "select",
-			name = "Minimum Quality",
-			desc = "Controls the minimum item quality that stat comparisons will be shown on",
-			values = {"Uncommon", "Rare", "Epic"},
+			name = "Minimum Item Quality",
+			desc = "Stat comparisons will only be shown on items with this quality or higher",
+			values = {"Uncommon (Green)", "Rare (Blue)", "Epic (Purple)"},
 			order = 10,
 			width = "double",
 		},
@@ -53,7 +53,7 @@ SimpleStats.options = {													-- Settings GUI table
 			type = "select",
 			name = "Show on weapon types:",
 			desc = "Controls which types of weapons stat comparisons will be shown on",
-			values = {"All", "Only usable", "Only useful to current class", "Only useful to current specialization"},
+			values = {"All", "Only usable by current class", "Only useful to current class", "Only useful to current specialization"},
 			order = 20,
 			width = "double",
 		},
@@ -61,59 +61,66 @@ SimpleStats.options = {													-- Settings GUI table
 			type = "select",
 			name = "Show on armor types:",
 			desc = "Controls which types of armor stat comparisons will be shown on",
-			values = {"All", "Only wearable", "Only useful to current class"},
+			values = {"All", "Only wearable by current class", "Only useful to current class"},
 			order = 30,
 			width = "double",
 		},
 		hideondisabledprimaries = {
 			type = "toggle",
 			name = "Hide comparison if disabled primary stat exists",
-			desc = "For example, hide comparisons on items with Agility if you're not showing Agility.\nComparisons will still be shown if the item also has a primary stat you're showing",
+			desc = "For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect.",
 			order = 40,
 			width = "full"
 		},
 		
 		header2 = {type = "header", name = "Primary Stats", order = 90},
 		
-		ITEM_MOD_AGILITY_SHORT = {
-			type = "toggle",
-			name = "Agility",
-			order = 100,
-			width = "half"
-		},
 		ITEM_MOD_STRENGTH_SHORT = {
 			type = "toggle",
 			name = "Strength",
+			desc = "Show Strength in stat comparisons",
+			order = 100,
+			width = "half"
+		},
+		ITEM_MOD_AGILITY_SHORT = {
+			type = "toggle",
+			name = "Agility",
+			desc = "Show Agility in stat comparisons",
 			order = 110,
 			width = "half"
 		},
 		ITEM_MOD_INTELLECT_SHORT = {
 			type = "toggle",
 			name = "Intellect",
+			desc = "Show Intellect in stat comparisons",
 			order = 120,
 			width = "half"
 		},
 		ITEM_MOD_STAMINA_SHORT = {
 			type = "toggle",
 			name = "Stamina",
+			desc = "Show Stamina in stat comparisons",
 			order = 130,
 			width = "double"
 		},
 		RESISTANCE0_NAME = {
 			type = "toggle",
 			name = "Armor",
+			desc = "Show Armor in stat comparisons",
 			order = 140,
 			width = "half"
 		},
 		ITEM_MOD_DAMAGE_PER_SECOND_SHORT = {
 			type = "toggle",
 			name = "DPS",
+			desc = "Show weapon DPS in stat comparisons",
 			order = 150,
 			width = "half"
 		},
 		showitemlevel = {
 			type = "toggle",
 			name = "Item Level",
+			desc = "Show item level changes in stat comparisons",
 			order = 155,
 		},
 		
@@ -122,89 +129,108 @@ SimpleStats.options = {													-- Settings GUI table
 		ITEM_MOD_CRIT_RATING_SHORT = {
 			type = "toggle",
 			name = "Crit",
+			desc = "Show Critical Strike in stat comparisons",
 			order = 170,
 		},
 		ITEM_MOD_HASTE_RATING_SHORT = {
 			type = "toggle",
 			name = "Haste",
+			desc = "Show Haste in stat comparisons",
 			order = 180,
 		},
 		ITEM_MOD_MASTERY_RATING_SHORT = {
 			type = "toggle",
 			name = "Mastery",
+			desc = "Show Mastery in stat comparisons",
 			order = 190,
 		},
 		ITEM_MOD_CR_MULTISTRIKE_SHORT = {
 			type = "toggle",
 			name = "Multistrike",
+			desc = "Show Multistrike in stat comparisons",
 			order = 200,
 		},
 		ITEM_MOD_VERSATILITY = {
 			type = "toggle",
 			name = "Versatility",
+			desc = "Show Versatility in stat comparisons",
 			order = 210,
-		},
-		ITEM_MOD_SPIRIT_SHORT = {
-			type = "toggle",
-			name = "Spirit",
-			order = 220,
-		},
-		ITEM_MOD_SPELL_POWER_SHORT = {
-			type = "toggle",
-			name = "Spell Power",
-			order = 230,
-		},
-		ITEM_MOD_PVP_POWER_SHORT = {
-			type = "toggle",
-			name = "PvP Power",
-			order = 240,
-		},
-		ITEM_MOD_RESILIENCE_RATING_SHORT = {
-			type = "toggle",
-			name = "PvP Resilience",
-			order = 250,
 		},
 		resistance = {
 			type = "toggle",
 			name = "Resistances",
+			desc = "Show resistances in stat comparisons",
+			order = 220,
+		},
+		ITEM_MOD_SPIRIT_SHORT = {
+			type = "toggle",
+			name = "Spirit",
+			desc = "Show Spirit in stat comparisons",
+			order = 230,
+		},
+		ITEM_MOD_SPELL_POWER_SHORT = {
+			type = "toggle",
+			name = "Spell Power",
+			desc = "Show Spell Power in stat comparisons",
+			order = 240,
+			width = "double"
+		},
+		ITEM_MOD_PVP_POWER_SHORT = {
+			type = "toggle",
+			name = "PvP Power",
+			desc = "Show PvP Power in stat comparisons",
+			order = 250,
+		},
+		ITEM_MOD_RESILIENCE_RATING_SHORT = {
+			type = "toggle",
+			name = "PvP Resilience",
+			desc = "Show PvP Resilience in stat comparisons",
 			order = 260,
 		},
 		
-		header4 = {type = "header", name = "Tertiary Stats", order = 270},
+		
+		header4 = {type = "header", name = "Minor Stats", order = 270},
 		
 		sockets = {
 			type = "toggle",
 			name = "Gem Sockets",
+			desc = "Show gem sockets in stat comparisons",
 			order = 280,
 		},
 		ITEM_MOD_CR_STURDINESS_SHORT = {
 			type = "toggle",
 			name = "Indestructible",
+			desc = "Show the Indestructible attribute in stat comparisons",
 			order = 290,
 		},
 		ITEM_MOD_CR_LIFESTEAL_SHORT = {
 			type = "toggle",
 			name = "Leech",
+			desc = "Show Leech in stat comparisons",
 			order = 300,
 		},
 		ITEM_MOD_CR_AVOIDANCE_SHORT = {
 			type = "toggle",
 			name = "Avoidance",
+			desc = "Show Avoidance in stat comparisons",
 			order = 310,
 		},
 		ITEM_MOD_CR_SPEED_SHORT = {
 			type = "toggle",
 			name = "Speed",
+			desc = "Show Speed in stat comparisons",
 			order = 300,
 		},
 		--[[ITEM_MOD_CR_AMPLIFY_SHORT = {
 			type = "toggle",a
 			name = "Amplify",
+			desc = "Show Amplify in stat comparisons",
 			order = 310,
 		},
 		ITEM_MOD_CR_CLEAVE_SHORT = {
 			type = "toggle",
 			name = "Cleave",
+			desc = "Show Cleave in stat comparisons",
 			order = 320,
 		},]]
 	}
