@@ -173,7 +173,7 @@ elseif LOCALE == "zhTW" then --=================================================
 	L["All"] = "所有"
 	L["Controls which types of armor stat comparisons will be shown on"] = "控制何種類型的護甲會顯示屬性比對"
 	L["Controls which types of weapons stat comparisons will be shown on"] = "控制何種類型的武器會顯示屬性比對"
-	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect." = "舉例來說，裝備沒顯示敏捷就會隱藏敏捷屬性的比對。\n\n比對仍會顯示如果裝備還有顯示其他主屬性。\n\n只對力量、敏捷與智力生效。"
+	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."] = "舉例來說，裝備沒顯示敏捷就會隱藏敏捷屬性的比對。\n\n比對仍會顯示如果裝備還有顯示其他主屬性。\n\n只對力量、敏捷與智力生效。"
 	L["Gem Sockets"] = "珠寶插槽"
 	L["Hide comparison if disabled primary stat exists"] = "隱藏非啟用之主屬性的比對"
 	L["Minimum item quality"] = "最低裝備品質"
