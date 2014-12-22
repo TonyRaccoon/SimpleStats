@@ -11,7 +11,7 @@
 ## Notes-ruRU: Shows customizable stat comparisons in item tooltips
 ## Notes-koKR: Shows customizable stat comparisons in item tooltips
 ## Notes-zhCN: Shows customizable stat comparisons in item tooltips
-## Notes-zhTW: Shows customizable stat comparisons in item tooltips
+## Notes-zhTW: 在物品提示顯示自訂化的屬性比對
 ## Author: Foxthorn
 ## Version: 1.4
 ## OptionalDeps: Ace3
