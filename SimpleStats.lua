@@ -545,12 +545,13 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	local _,_,rarity,itemLevel,_,itemType,itemSubType,_,invType = GetItemInfo(itemLink)
 	local itemID = tonumber(strmatch(itemLink,"item:(%d+):"))
 	
-	-- Quit if:
+	-- Quit if:																														-- Quit if:
 	if (itemType ~= SimpleStats.localized.armorName and itemType ~= SimpleStats.localized.weaponName)								-- It's not armor or a weapon
 	or (invType == "INVTYPE_TABARD" or invType == "INVTYPE_BODY")																	-- It's a shirt or tabard
 	or (rarity < SimpleStats.db.profile.minquality+1)																				-- It's below our current quality threshold
 	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
-	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType)) then							-- It's a weapon and doesn't match our weapon settings
+	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType))								-- It's a weapon and doesn't match our weapon settings
+	or (SimpleStats.blacklistedItems[itemID]) then																									-- It's a blacklistem item
 		return
 	end
 	
@@ -725,6 +726,23 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 end
 
 function SimpleStats:SetupTables()										-- Sets up all of the utility/data tables used by the addon
+	
+	-- These items should never show a stat comparison (most of them are Use: items with an ItemType of Armor or Weapon)
+	local blacklist = {
+		114052,114053,114094,114096,114097,114098,114099,114100,114101,114105,114108,	-- 512-610 mission gear
+		114057,114058,114059,114063,114066,114068,114109,								-- 615 mission gear
+		114069,114070,114071,114075,114078,114080,114110,								-- 630 mission gear
+		114082,114083,114084,114085,114086,114087,114112,								-- 645 mission gear
+		114745,114808,114822,114807,114806,114746,										-- Follower armor upgrades
+		114128,114129,114131,114616,114081,114622,										-- Follower weapon upgrades
+	}
+	
+	-- Inverse the blacklist so we can do self.blacklistedItems[itemID]
+	self.blacklistedItems = {}
+	for k,itemID in pairs(blacklist) do
+		self.blacklistedItems[itemID] = true
+	end
+	
 	-- Maps between INVTYPEs and slot IDs
 	self.invTypes = {
 		INVTYPE_HEAD = 1,
