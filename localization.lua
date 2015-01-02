@@ -40,7 +40,7 @@ elseif LOCALE == "deDE" then --=================================================
 	L["All"] = "Alle"
 	L["Controls which types of armor stat comparisons will be shown on"] = "Steuert auf welchen Arten von Rüstung die Wertevergleiche angezeigt werden"
 	L["Controls which types of weapons stat comparisons will be shown on"] = "Steuert auf welchen Arten von Waffen die Wertevergleiche angezeigt werden"
-	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect." = "Zum Beispiel: Zeige den Vergleich nicht auf Gegenständen mit Beweglichkeit an, wenn du keine Beweglichkeit benutzt.\n\nVergleiche werden weiterhin gezeigt, wenn der Gestand einen Wert besitzt, den du benutzt.\n\nBetrifft nur Stärke, Beweglichkeit und Intelligenz"
+	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."] = "Zum Beispiel: Zeige den Vergleich nicht auf Gegenständen mit Beweglichkeit an, wenn du keine Beweglichkeit benutzt.\n\nVergleiche werden weiterhin gezeigt, wenn der Gestand einen Wert besitzt, den du benutzt.\n\nBetrifft nur Stärke, Beweglichkeit und Intelligenz"
 	L["Gem Sockets"] = "Edelsteinsockel"
 	L["Hide comparison if disabled primary stat exists"] = "Zeige Vergleiche nicht an wenn ein deaktivierter Primärwert vorhanden ist"
 	L["Minimum item quality"] = "Minimale Qualitätsstufe"
