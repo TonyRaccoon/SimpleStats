@@ -37,24 +37,25 @@ if     LOCALE == "esES" or LOCALE == "esMX" then --=============================
 	L["Show %s in stat comparisons"]												= nil
 	L["Gem Sockets"]																= nil
 elseif LOCALE == "deDE" then --==========================================================  German                ==========================
-	L["Minimum item quality"]														= nil
-	L["Stat comparisons will only be shown on items with this quality or higher"]	= nil
-	L["Show on weapon types:"]														= nil
-	L["Show on armor types:"]														= nil
-	L["Controls which types of weapons stat comparisons will be shown on"]			= nil
-	L["Controls which types of armor stat comparisons will be shown on"]			= nil
-	L["All"]																		= nil
-	L["Only usable by current class"]												= nil
-	L["Only wearable by current class"]												= nil
-	L["Only useful to current class"]												= nil
-	L["Only useful to current specialization"]										= nil
-	L["Hide comparison if disabled primary stat exists"]							= nil
-	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."] = nil
-	L["Primary Stats"]																= nil
-	L["Secondary Stats"]															= nil
-	L["Minor Stats"]																= nil
-	L["Show %s in stat comparisons"]												= nil
-	L["Gem Sockets"]																= nil
+	L["All"] = "Alle"
+	L["Controls which types of armor stat comparisons will be shown on"] = "Steuert auf welchen Arten von Rüstung die Wertevergleiche angezeigt werden"
+	L["Controls which types of weapons stat comparisons will be shown on"] = "Steuert auf welchen Arten von Waffen die Wertevergleiche angezeigt werden"
+	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect." = "Zum Beispiel: Zeige den Vergleich nicht auf Gegenständen mit Beweglichkeit an, wenn du keine Beweglichkeit benutzt.\n\nVergleiche werden weiterhin gezeigt, wenn der Gestand einen Wert besitzt, den du benutzt.\n\nBetrifft nur Stärke, Beweglichkeit und Intelligenz"
+	L["Gem Sockets"] = "Edelsteinsockel"
+	L["Hide comparison if disabled primary stat exists"] = "Zeige Vergleiche nicht an wenn ein deaktivierter Primärwert vorhanden ist"
+	L["Minimum item quality"] = "Minimale Qualitätsstufe"
+	L["Minor Stats"] = "Optionale Werte"
+	L["Only usable by current class"] = "Nur von der aktuellen Klasse benutzbar"
+	L["Only useful to current class"] = "Nur für die aktuelle Klasse sinnvoll"
+	L["Only useful to current specialization"] = "Nur für die aktuelle Spezialisierung sinnvoll"
+	L["Only wearable by current class"] = "Nur von der aktuellen Klasse ausrüstbar"
+	L["Primary Stats"] = "Primärwerte"
+	L["Secondary Stats"] = "Sekundärwerte"
+	L["Show on armor types:"] = "Zeige auf diesen Rüstungsarten:"
+	L["Show on weapon types:"] = "Zeige auf diesen Waffenarten:"
+	L["Show %s in stat comparisons"] = "Zeige %s in Wertevergleichen"
+	L["Stat comparisons will only be shown on items with this quality or higher"] = "Wertevergleiche werden nur für Gegenstände dieser Qualitätsstufe oder höher angezeigt"
+
 elseif LOCALE == "frFR" then --==========================================================  French                ==========================
 	L["Minimum item quality"]														= nil
 	L["Stat comparisons will only be shown on items with this quality or higher"]	= nil

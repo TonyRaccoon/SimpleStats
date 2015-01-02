@@ -3,7 +3,7 @@
 ## Notes: Shows customizable stat comparisons in item tooltips
 ## Notes-esES: Shows customizable stat comparisons in item tooltips
 ## Notes-esMX: Shows customizable stat comparisons in item tooltips
-## Notes-deDE: Shows customizable stat comparisons in item tooltips
+## Notes-deDE: Zeige anpassbare Wertevergleiche in Gegenstandstooltips
 ## Notes-frFR: Shows customizable stat comparisons in item tooltips
 ## Notes-itIT: Shows customizable stat comparisons in item tooltips
 ## Notes-ptBR: Shows customizable stat comparisons in item tooltips
