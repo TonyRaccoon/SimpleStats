@@ -293,7 +293,12 @@ function SimpleStats:SortStats(changedStats)							-- Takes a table of stat chan
 	
 	-- Add the positive stat changes, in the correct position based on the 'order' table, to the final table
 	for statName,statChange in pairs(increasedStats) do
-		statChange = math.floor(statChange)
+		if statName == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
+			statChange = round(statChange, 2)
+		else
+			statChange = math.floor(statChange)
+		end
+		
 		if self.order[statName] then
 			local pos = self.order[statName]
 			sortedStats[pos] = {statName,statChange}
@@ -302,7 +307,11 @@ function SimpleStats:SortStats(changedStats)							-- Takes a table of stat chan
 	
 	-- Finally, do the same thing for the negative stat changes, except offset them by #self.order so they always appear after the positive changes
 	for statName,statChange in pairs(decreasedStats) do
-		statChange = math.floor(statChange)
+		if statName == "ITEM_MOD_DAMAGE_PER_SECOND_SHORT" then
+			statChange = round(statChange, 2)
+		else
+			statChange = math.floor(statChange)
+		end
 		if self.order[statName] then
 			local pos = self.order[statName] + self.order.count
 			sortedStats[pos] = {statName,statChange}
@@ -1319,4 +1328,8 @@ function orderedNext(t, state)	-- Used by orderedPairs()
 end
 function orderedPairs(t)		-- Same as pairs(table), but keys are returned sorted by key (alphabetically/numerically) instead of whatever order lua wants
     return orderedNext, t, nil
+end
+function round(num, idp)		-- Rounds a number to x places
+  local mult = 10^(idp or 0)
+  return math.floor(num * mult + 0.5) / mult
 end
