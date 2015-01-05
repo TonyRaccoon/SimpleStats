@@ -560,6 +560,35 @@ function SimpleStats:CanDualWield()										-- Determines whether the character
 	end
 end
 
+function SimpleStats:AddLinesToTooltip(tooltip,lines)					-- Adds the given lines to the given tooltip
+	local firstLine = true
+	for k,line in pairs(lines) do
+		local iLevel = strmatch(line, "ilevel:([-%d]+)")
+		if iLevel then
+			if SimpleStats.db.profile.showitemlevel then
+				iLevel = tonumber(iLevel)
+				
+				-- If it's the first line, it's not under a 'Trinket 1' or whatever, so don't indent it
+				local indent = firstLine and "" or "  "
+				
+				if iLevel > 0 then
+					tooltip:AddLine(indent.."|cffbbff00+"..iLevel.." |cffffe100ItemLevel")
+				elseif iLevel < 0 then
+					tooltip:AddLine(indent.."|cfff3542c"..iLevel.." |cffffe100ItemLevel")
+				end
+			end
+		else
+			tooltip:AddLine(line)
+			firstLine = false
+		end
+	end
+	
+	-- Finally, show the tooltip now that we're done modifying it
+	if (tooltip:GetName() == "GameTooltip") then
+		tooltip:Show()
+	end
+end
+
 function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a tooltip and modifies it with the stat changes
 	local _,itemLink = self:GetItem()
 	if not itemLink then return end -- Quit if this isn't an item tooltip
@@ -719,32 +748,8 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 	end
 	
-	local firstLine = true
-	for k,line in pairs(tooltipLines) do
-		local iLevel = strmatch(line, "ilevel:([-%d]+)")
-		if iLevel then
-			if SimpleStats.db.profile.showitemlevel then
-				iLevel = tonumber(iLevel)
-				
-				-- If it's the first line, it's not under a 'Trinket 1' or whatever, so don't indent it
-				local indent = firstLine and "" or "  "
-				
-				if iLevel > 0 then
-					self:AddLine(indent.."|cffbbff00+"..iLevel.." |cffffe100ItemLevel")
-				elseif iLevel < 0 then
-					self:AddLine(indent.."|cfff3542c"..iLevel.." |cffffe100ItemLevel")
-				end
-			end
-		else
-			self:AddLine(line)
-			firstLine = false
-		end
-	end
-	
-	-- Finally, show the tooltip now that we're done modifying it
-	if (self:GetName() == "GameTooltip") then
-		self:Show()
-	end
+	-- Finally, augment the tooltip
+	SimpleStats:AddLinesToTooltip(self,tooltipLines)
 end
 
 function SimpleStats:SetupTables()										-- Sets up all of the utility/data tables used by the addon
@@ -1275,6 +1280,20 @@ function SimpleStats:OnInitialize()										-- Runs when addon is initialized
 	self:HideBlizzComparison(ShoppingTooltip2)
 	self:HideBlizzComparison(ItemRefShoppingTooltip1)
 	self:HideBlizzComparison(ItemRefShoppingTooltip2)
+end
+
+--- Public Functions ---
+function SimpleStats:ShowStatChanges(tooltip,stats1,stats2)				-- Shows stat changes from stats1 -> stats2 in the given tooltip. Pass it either itemstrings or the result of GetItemStats()
+	-- If given an item link instead of a stats table, extract the stats from the link
+	if type(stats1) == "string" and strmatch(stats1, "item:") then
+		stats1 = GetItemStats(stats1)
+	end
+	if type(stats2) == "string" and strmatch(stats2, "item:") then
+		stats2 = GetItemStats(stats2)
+	end
+	
+	local lines = SimpleStats:GetStatChangeLines(stats2,stats1)
+	SimpleStats:AddLinesToTooltip(tooltip, lines)
 end
 
 --- Misc Lua Functions ---
