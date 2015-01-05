@@ -15,6 +15,8 @@ SimpleStats.defaults = {												-- Default settings
 		ITEM_MOD_SPIRIT_SHORT = true,
 		ITEM_MOD_CRIT_RATING_SHORT = true,
 		ITEM_MOD_HASTE_RATING_SHORT = true,
+		ITEM_MOD_DODGE_RATING_SHORT = true,
+		ITEM_MOD_PARRY_RATING_SHORT = true,
 		ITEM_MOD_MASTERY_RATING_SHORT = true,
 		ITEM_MOD_CR_MULTISTRIKE_SHORT = true,
 		ITEM_MOD_VERSATILITY = true,
@@ -172,12 +174,11 @@ SimpleStats.options = {													-- Settings GUI table
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_SPIRIT_SHORT),
 			order = 230,
 		},
-		ITEM_MOD_SPELL_POWER_SHORT = {
+		ITEM_MOD_DODGE_RATING_SHORT = {
 			type = "toggle",
-			name = ITEM_MOD_SPELL_POWER_SHORT,
-			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_SPELL_POWER_SHORT),
+			name = ITEM_MOD_DODGE_RATING_SHORT,
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_DODGE_RATING_SHORT),
 			order = 240,
-			width = "double"
 		},
 		ITEM_MOD_PVP_POWER_SHORT = {
 			type = "toggle",
@@ -185,57 +186,69 @@ SimpleStats.options = {													-- Settings GUI table
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_PVP_POWER_SHORT),
 			order = 250,
 		},
+		ITEM_MOD_SPELL_POWER_SHORT = {
+			type = "toggle",
+			name = ITEM_MOD_SPELL_POWER_SHORT,
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_SPELL_POWER_SHORT),
+			order = 260,
+		},
+		ITEM_MOD_PARRY_RATING_SHORT = {
+			type = "toggle",
+			name = ITEM_MOD_PARRY_RATING_SHORT,
+			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_PARRY_RATING_SHORT),
+			order = 270,
+		},
 		ITEM_MOD_RESILIENCE_RATING_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_RESILIENCE_RATING_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_RESILIENCE_RATING_SHORT),
-			order = 260,
+			order = 280,
 		},
 		
 		
-		header4 = {type = "header", name = L["Minor Stats"], order = 270},
+		header4 = {type = "header", name = L["Minor Stats"], order = 290},
 		
 		sockets = {
 			type = "toggle",
 			name = L["Gem Sockets"],
 			desc = format(L["Show %s in stat comparisons"], L["Gem Sockets"]:lower()),
-			order = 280,
+			order = 300,
 		},
 		ITEM_MOD_CR_STURDINESS_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_STURDINESS_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_STURDINESS_SHORT),
-			order = 290,
+			order = 310,
 		},
 		ITEM_MOD_CR_LIFESTEAL_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_LIFESTEAL_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_LIFESTEAL_SHORT),
-			order = 300,
+			order = 320,
 		},
 		ITEM_MOD_CR_AVOIDANCE_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_AVOIDANCE_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_AVOIDANCE_SHORT),
-			order = 310,
+			order = 330,
 		},
 		ITEM_MOD_CR_SPEED_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_SPEED_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_SPEED_SHORT),
-			order = 300,
+			order = 340,
 		},
 		--[[ITEM_MOD_CR_AMPLIFY_SHORT = {
 			type = "toggle",a
 			name = ITEM_MOD_CR_AMPLIFY_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_AMPLIFY_SHORT),
-			order = 310,
+			order = 350,
 		},
 		ITEM_MOD_CR_CLEAVE_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_CLEAVE_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_CLEAVE_SHORT),
-			order = 320,
+			order = 360,
 		},]]
 	}
 }
