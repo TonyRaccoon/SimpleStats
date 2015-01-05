@@ -34,7 +34,7 @@ SimpleStats.defaults = {												-- Default settings
 		
 		usableweapons = 4,
 		usablearmor = 3,
-		minquality = 1,
+		minquality = 2,
 		showitemlevel = true,
 		hideondisabledprimaries = false,
 	}
@@ -51,7 +51,7 @@ SimpleStats.options = {													-- Settings GUI table
 			type = "select",
 			name = L["Minimum item quality"],
 			desc = L["Stat comparisons will only be shown on items with this quality or higher"],
-			values = {ITEM_QUALITY2_DESC, ITEM_QUALITY3_DESC, ITEM_QUALITY4_DESC},
+			values = {ITEM_QUALITY1_DESC, ITEM_QUALITY2_DESC, ITEM_QUALITY3_DESC, ITEM_QUALITY4_DESC},
 			order = 10,
 			width = "double",
 		},
@@ -561,7 +561,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- Quit if:																														-- Quit if:
 	if (itemType ~= SimpleStats.localized.armorName and itemType ~= SimpleStats.localized.weaponName)								-- It's not armor or a weapon
 	or (invType == "INVTYPE_TABARD" or invType == "INVTYPE_BODY")																	-- It's a shirt or tabard
-	or (rarity < SimpleStats.db.profile.minquality+1)																				-- It's below our current quality threshold
+	or (rarity < SimpleStats.db.profile.minquality)																				-- It's below our current quality threshold
 	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
 	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType))								-- It's a weapon and doesn't match our weapon settings
 	or (SimpleStats.blacklistedItems[itemID]) then																									-- It's a blacklistem item
