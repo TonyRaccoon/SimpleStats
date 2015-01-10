@@ -37,6 +37,7 @@ SimpleStats.defaults = {												-- Default settings
 		minquality = 2,
 		showitemlevel = true,
 		hideondisabledprimaries = false,
+		hideonlowerilevel = false,
 	}
 }
 SimpleStats.options = {													-- Settings GUI table
@@ -76,6 +77,12 @@ SimpleStats.options = {													-- Settings GUI table
 			name = L["Hide comparison if disabled primary stat exists"],
 			desc = L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."],
 			order = 40,
+			width = "full"
+		},
+		hideonlowerilevel = {
+			type = "toggle",
+			name = L["Hide comparison if item level is lower"],
+			order = 50,
 			width = "full"
 		},
 		
@@ -599,15 +606,15 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- Quit if:																														-- Quit if:
 	if (itemType ~= SimpleStats.localized.armorName and itemType ~= SimpleStats.localized.weaponName)								-- It's not armor or a weapon
 	or (invType == "INVTYPE_TABARD" or invType == "INVTYPE_BODY")																	-- It's a shirt or tabard
-	or (rarity < SimpleStats.db.profile.minquality)																				-- It's below our current quality threshold
+	or (rarity < SimpleStats.db.profile.minquality)																					-- It's below our current quality threshold
 	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
 	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType))								-- It's a weapon and doesn't match our weapon settings
-	or (SimpleStats.blacklistedItems[itemID]) then																									-- It's a blacklistem item
+	or (SimpleStats.blacklistedItems[itemID]) then																					-- It's a blacklisted item
 		return
 	end
 	
 	-- Get data on currently equipped items
-	local equippedItems = {[1]={},[2]={slotExists=false}}
+	local equippedItems = {[1]={level=0},[2]={slotExists=false, level=0}}
 	local firstItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
 	if (firstItemLink) then
 		local _,_,_,firstItemLevel = GetItemInfo(firstItemLink)
@@ -640,6 +647,13 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- Quit if the item is identical to the only (most things)/both (rings, trinkets, etc.) equipped item
 	if SimpleStats:AreIdentical(itemLink, equippedItems[1].link)
 	and (SimpleStats:AreIdentical(itemLink, equippedItems[2].link) or not equippedItems[2].slotExists) then
+		return
+	end
+	
+	-- Quit if the item level is lower than what we have, and that option is enabled
+	if SimpleStats.db.profile.hideonlowerilevel
+	and equippedItems[1].level > itemLevel and
+	(not equippedItems[2].slotExists or equippedItems[2].level > itemLevel) then
 		return
 	end
 	
