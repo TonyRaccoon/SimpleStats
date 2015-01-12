@@ -339,6 +339,8 @@ function SimpleStats:StatIsEnabled(statName)							-- Returns whether the given 
 		return self.db.profile.resistance
 	elseif strmatch(statName, "EMPTY_SOCKET") then
 		return self.db.profile.sockets
+	elseif statName == "STAT_AVERAGE_ITEM_LEVEL" then
+		return self.db.profile.showitemlevel
 	else
 		return self.db.profile[statName]
 	end
@@ -350,6 +352,7 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 	-- Add each new stat into the statChanges table
 	for statName,statValue in pairs(newStats) do
 		if currentStats[statName] then -- Stat exists on both, do subtraction
+			
 			statChanges[statName] = newStats[statName] - currentStats[statName]
 		else -- New stat, just use the value
 			statChanges[statName] = newStats[statName]
@@ -363,6 +366,9 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 		end
 	end
 	
+	-- Store item level change external to statChanges table since it's much harder to extract after sorting
+	local itemLevelChange = statChanges.STAT_AVERAGE_ITEM_LEVEL
+	
 	-- Sort the stats in the proper order (primary first, then secondary, etc.)
 	statChanges = self:SortStats(statChanges)
 	
@@ -372,10 +378,18 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 	local lines = {}
 	local indent = doIndent and "  " or ""
 	
-	-- Add the itemlevel change line, if it's enabled
-	--if self.db.profile.showitemlevel then
-	--	tinsert(lines, indent.."")
-	--end
+	if self.db.profile.showitemlevel then
+		if itemLevelChange > 0 then
+			table.insert(lines, indent.."|cffbbff00+"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
+		elseif itemLevelChange < 0 then
+			table.insert(lines, indent.."|cfff3542c"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
+		end
+	end
+	
+	-- Quit if the item level is lower than what we have, and that option is enabled	
+	if SimpleStats.db.profile.hideonlowerilevel and itemLevelChange < 0 then
+		return lines
+	end
 	
 	for k,stat in orderedPairs(statChanges) do
 		statName = stat[1]
@@ -384,7 +398,7 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 		convertedName = self.resistanceNames[statName] or statName
 		
 		statValue = stat[2]+0
-		if self:StatIsEnabled(statName) then
+		if self:StatIsEnabled(statName) and statName ~= "STAT_AVERAGE_ITEM_LEVEL" then
 			if (statValue > 0) then
 				if self.noNumberStats[convertedName] then
 					table.insert(lines, indent.."|cff00ff00+".._G[convertedName])
@@ -409,7 +423,15 @@ function SimpleStats:CombineItemStats(itemLink1,itemLink2)				-- Returns a table
 	if itemLink1 then
 		combinedStats = GetItemStats(itemLink1)
 		
+		-- Add item level to stat table
+		local _,_,_,itemLevel1 = GetItemInfo(itemLink1)
+		combinedStats["STAT_AVERAGE_ITEM_LEVEL"] = itemLevel1
+		
 		if itemLink2 then
+			-- Set item level to the average of the two items
+			local _,_,_,itemLevel2 = GetItemInfo(itemLink2)
+			combinedStats["STAT_AVERAGE_ITEM_LEVEL"] = math.floor((itemLevel1+itemLevel2)/2)
+		
 			for statName,statValue in pairs(GetItemStats(itemLink2)) do
 				if combinedStats[statName] then
 					combinedStats[statName] = combinedStats[statName] + statValue
@@ -528,10 +550,6 @@ function SimpleStats:AreIdentical(itemLink1, itemLink2)					-- Determines whethe
 	end
 end
 
-function SimpleStats:GetItemLevelDiff(itemLevel1, itemLevel2)			-- Returns the item level difference between two items
-	return (itemLevel1 or 0) - (itemLevel2 or 0)
-end
-
 function SimpleStats:MergeTooltipLines(lines, newLines, headerLine)		-- Takes a table of lines and a (possibly blank) table of new lines and appends them, adding an optional header line if there's any new lines
 	if newLines then
 		if headerLine then
@@ -568,26 +586,8 @@ function SimpleStats:CanDualWield()										-- Determines whether the character
 end
 
 function SimpleStats:AddLinesToTooltip(tooltip,lines)					-- Adds the given lines to the given tooltip
-	local firstLine = true
 	for k,line in pairs(lines) do
-		local iLevel = strmatch(line, "ilevel:([-%d]+)")
-		if iLevel then
-			if SimpleStats.db.profile.showitemlevel then
-				iLevel = tonumber(iLevel)
-				
-				-- If it's the first line, it's not under a 'Trinket 1' or whatever, so don't indent it
-				local indent = firstLine and "" or "  "
-				
-				if iLevel > 0 then
-					tooltip:AddLine(indent.."|cffbbff00+"..iLevel.." |cffffe100ItemLevel")
-				elseif iLevel < 0 then
-					tooltip:AddLine(indent.."|cfff3542c"..iLevel.." |cffffe100ItemLevel")
-				end
-			end
-		else
-			tooltip:AddLine(line)
-			firstLine = false
-		end
+		tooltip:AddLine(line)
 	end
 	
 	-- Finally, show the tooltip now that we're done modifying it
@@ -650,13 +650,6 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 		return
 	end
 	
-	-- Quit if the item level is lower than what we have, and that option is enabled
-	if SimpleStats.db.profile.hideonlowerilevel
-	and equippedItems[1].level > itemLevel and
-	(not equippedItems[2].slotExists or equippedItems[2].level > itemLevel) then
-		return
-	end
-	
 	-- Retrieve data about the main-hand weapon for use later
 	local currentMainHand = {}
 	if GetInventoryItemLink("player",16) then
@@ -673,7 +666,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	local equippedIs2HWeapon = SimpleStats:IsWeapon2H(currentMainHand.link)
 	
 	local newStats = GetItemStats(itemLink)
-	newStats.itemlevel = itemLevel
+	newStats["STAT_AVERAGE_ITEM_LEVEL"] = itemLevel
 	
 	-- Collect primary stats on the item for use below
 	local primaryStats = {agi=0, str=0, int=0}
@@ -702,21 +695,17 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- If the item is a trinket, show stat changes for both trinkets, but if we don't have any trinkets, just show one stat comparison ('else' below)
 	if invType == "INVTYPE_TRINKET" and (equippedItems[1].link or equippedItems[2].link) then
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[1].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Trinket 1:")
 		
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[2].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Trinket 2:")
 	
 	-- If the item is a ring, show stat changes for both rings, but if we don't have any rings, just show one stat comparison ('else' below)
 	elseif invType == "INVTYPE_FINGER" and (equippedItems[1].link or equippedItems[2].link) then
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[1].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Ring 1:")
 		
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[2].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Ring 2:")
 	
 	-- If the item is a 1H weapon, show stat changes for both weapon slots, but if we don't have any weapons, just show one stat comparison ('else' below)
@@ -725,40 +714,33 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 		-- If the character can't dual wield, don't show two comparisons since it can only go in the first slot
 		if SimpleStats:CanDualWield() then
 			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-			if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[1].level)) end
 			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 1:")
 			
 			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-			if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[2].level)) end
 			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 2:")
 		else -- Functionally the same as 'else' below
 			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
-			if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[1].level)) end
 			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 		end
 	
 	-- Looking at a 2H and two 1H are equipped, so combine their stats
 	elseif SimpleStats:IsWeapon2H(itemLink) and equippedItems[1].id and equippedItems[2].id then
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link, equippedItems[2].link))
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[2].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 	
 	-- Looking at a 2H and something is in the off-hand slot, so compare to that
 	elseif SimpleStats:IsWeapon2H(itemLink) and GetInventoryItemLink("player",17) then
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(GetInventoryItemLink("player",17)))
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[2].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 	
 	-- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
 	elseif SimpleStats.invTypes[invType] == 17 and equippedIs2HWeapon then
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(currentMainHand.link))
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, currentMainHand.level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 	
 	-- Otherwise, print a single stat comparison
 	else
 		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
-		if lines then tinsert(lines, 1, "ilevel:"..SimpleStats:GetItemLevelDiff(itemLevel, equippedItems[1].level)) end
 		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
 	end
 	
@@ -823,6 +805,7 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 	
 	-- Define the order that stats should appear in in tooltips
 	local orderInverse = {
+		"STAT_AVERAGE_ITEM_LEVEL",
 		"RESISTANCE0_NAME",
 		"ITEM_MOD_DAMAGE_PER_SECOND_SHORT",
 		"ITEM_MOD_AGILITY_SHORT",
