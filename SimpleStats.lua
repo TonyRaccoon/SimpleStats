@@ -633,7 +633,8 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	or (rarity < SimpleStats.db.profile.minquality)																					-- It's below our current quality threshold
 	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
 	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType))								-- It's a weapon and doesn't match our weapon settings
-	or (SimpleStats.blacklistedItems[itemID]) then																					-- It's a blacklisted item
+	or (SimpleStats.blacklistedItems[itemID])																						-- It's a blacklisted item
+	or (strmatch(GetMouseFocus():GetName() or "", "^Character.*Slot$")) then														-- We're looking at an equipped item
 		return
 	end
 	
