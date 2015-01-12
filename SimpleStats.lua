@@ -586,14 +586,17 @@ function SimpleStats:CanDualWield()										-- Determines whether the character
 end
 
 function SimpleStats:AddLinesToTooltip(tooltip,lines)					-- Adds the given lines to the given tooltip
+	-- Only print a separator line if we actually need to
+	if #lines > 0 then
+		tooltip:AddLine(" ")
+	end
+	
 	for k,line in pairs(lines) do
 		tooltip:AddLine(line)
 	end
 	
-	-- Finally, show the tooltip now that we're done modifying it
-	if (tooltip:GetName() == "GameTooltip") then
-		tooltip:Show()
-	end
+	-- :Show()ing the tooltip forces it to recalculate its sized based on contents
+	tooltip:Show()
 end
 
 function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a tooltip and modifies it with the stat changes
@@ -688,7 +691,6 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 		return
 	end
 	
-	self:AddLine(" ")
 	local tooltipLines = {}
 	local lines
 	
