@@ -382,7 +382,7 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 		if itemLevelChange > 0 then
 			table.insert(lines, indent.."|cffbbff00+"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
 		elseif itemLevelChange < 0 then
-			table.insert(lines, indent.."|cfff3542c"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
+			table.insert(lines, indent.."|cffff7423"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
 		end
 	end
 	
