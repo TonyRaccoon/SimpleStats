@@ -352,7 +352,6 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 	-- Add each new stat into the statChanges table
 	for statName,statValue in pairs(newStats) do
 		if currentStats[statName] then -- Stat exists on both, do subtraction
-			
 			statChanges[statName] = newStats[statName] - currentStats[statName]
 		else -- New stat, just use the value
 			statChanges[statName] = newStats[statName]
@@ -380,9 +379,9 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 	
 	if self.db.profile.showitemlevel then
 		if itemLevelChange > 0 then
-			table.insert(lines, indent.."|cffbbff00+"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
+			table.insert(lines, {text=indent.."|cffbbff00+"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL})
 		elseif itemLevelChange < 0 then
-			table.insert(lines, indent.."|cffff7423"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL)
+			table.insert(lines, {text=indent.."|cffff7423"..itemLevelChange.." |cffffe100"..STAT_AVERAGE_ITEM_LEVEL})
 		end
 	end
 	
@@ -390,6 +389,9 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 	if SimpleStats.db.profile.hideonlowerilevel and itemLevelChange < 0 then
 		return lines
 	end
+	
+	-- Used later to determine if any stats were actually shown; if not, don't show the header line ("Trinket 1:", etc.)
+	local aStatIsShown = false
 	
 	for k,stat in orderedPairs(statChanges) do
 		statName = stat[1]
@@ -399,17 +401,18 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 		
 		statValue = stat[2]+0
 		if self:StatIsEnabled(statName) and statName ~= "STAT_AVERAGE_ITEM_LEVEL" then
+			aStatIsShown = true
 			if (statValue > 0) then
 				if self.noNumberStats[convertedName] then
-					table.insert(lines, indent.."|cff00ff00+".._G[convertedName])
+					table.insert(lines, {text=indent.."|cff00ff00+".._G[convertedName]})
 				else
-					table.insert(lines, indent.."|cff00ff00+"..statValue.."|cffffffff ".._G[convertedName])
+					table.insert(lines, {text=indent.."|cff00ff00+"..statValue.."|cffffffff ".._G[convertedName]})
 				end
 			elseif (statValue < 0) then
 				if self.noNumberStats[convertedName] then
-					table.insert(lines, indent.."|cffff0000-".._G[convertedName])
+					table.insert(lines, {text=indent.."|cffff0000-".._G[convertedName]})
 				else
-					table.insert(lines, indent.."|cffff0000"..statValue.."|cffffffff ".._G[convertedName])
+					table.insert(lines, {text=indent.."|cffff0000"..statValue.."|cffffffff ".._G[convertedName]})
 				end
 			end
 		end
@@ -586,13 +589,24 @@ function SimpleStats:CanDualWield()										-- Determines whether the character
 end
 
 function SimpleStats:AddLinesToTooltip(tooltip,lines)					-- Adds the given lines to the given tooltip
-	-- Only print a separator line if we actually need to
-	if #lines > 0 then
-		tooltip:AddLine(" ")
-	end
+	local printedSeparator = false
 	
 	for k,line in pairs(lines) do
-		tooltip:AddLine(line)
+		-- Print a separator if we haven't already
+		if not printedSeparator then
+			tooltip:AddLine(" ")
+			printedSeparator = true
+		end
+		-- If it has child line elements, print as a header and print all the children indented
+		if line.lines then
+			tooltip:AddLine(line.text)
+			
+			for k,subline in pairs(line.lines) do
+				tooltip:AddLine("  "..subline.text)
+			end
+		else
+			tooltip:AddLine(line.text)
+		end
 	end
 	
 	-- :Show()ing the tooltip forces it to recalculate its sized based on contents
@@ -692,58 +706,43 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	end
 	
 	local tooltipLines = {}
-	local lines
 	
 	-- If the item is a trinket, show stat changes for both trinkets, but if we don't have any trinkets, just show one stat comparison ('else' below)
 	if invType == "INVTYPE_TRINKET" and (equippedItems[1].link or equippedItems[2].link) then
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Trinket 1:")
-		
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Trinket 2:")
+		tinsert(tooltipLines, {text="Trinket 1:", lines=  SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)  })
+		tinsert(tooltipLines, {text="Trinket 2:", lines=  SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)  })
 	
 	-- If the item is a ring, show stat changes for both rings, but if we don't have any rings, just show one stat comparison ('else' below)
 	elseif invType == "INVTYPE_FINGER" and (equippedItems[1].link or equippedItems[2].link) then
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Ring 1:")
-		
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Ring 2:")
+		tinsert(tooltipLines, {text="Ring 1:", lines=  SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)  })
+		tinsert(tooltipLines, {text="Ring 2:", lines=  SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)  })
 	
 	-- If the item is a 1H weapon, show stat changes for both weapon slots, but if we don't have any weapons, just show one stat comparison ('else' below)
 	-- Also, if we're wielding a 2H, show a standard comparison against it ('else' below)
 	elseif invType == "INVTYPE_WEAPON" and (equippedItems[1].link or equippedItems[2].link) and not equippedIs2HWeapon then
 		-- If the character can't dual wield, don't show two comparisons since it can only go in the first slot
 		if SimpleStats:CanDualWield() then
-			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)
-			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 1:")
-			
-			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)
-			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines, "Weapon 2:")
+			tinsert(tooltipLines, {text="Weapon 1:", lines=  SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link), true)  })
+			tinsert(tooltipLines, {text="Weapon 2:", lines=  SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[2].link), true)  })
 		else -- Functionally the same as 'else' below
-			lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
-			tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
+			tooltipLines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
 		end
 	
 	-- Looking at a 2H and two 1H are equipped, so combine their stats
 	elseif SimpleStats:IsWeapon2H(itemLink) and equippedItems[1].id and equippedItems[2].id then
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link, equippedItems[2].link))
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
+		tooltipLines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link, equippedItems[2].link))
 	
 	-- Looking at a 2H and something is in the off-hand slot, so compare to that
 	elseif SimpleStats:IsWeapon2H(itemLink) and GetInventoryItemLink("player",17) then
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(GetInventoryItemLink("player",17)))
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
+		tooltipLines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(GetInventoryItemLink("player",17)))
 	
 	-- Looking at an off-hand, and a 2h weapon is in the first wep slot, so compare to that
 	elseif SimpleStats.invTypes[invType] == 17 and equippedIs2HWeapon then
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(currentMainHand.link))
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
+		tooltipLines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(currentMainHand.link))
 	
 	-- Otherwise, print a single stat comparison
 	else
-		lines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
-		tooltipLines = SimpleStats:MergeTooltipLines(tooltipLines, lines)
+		tooltipLines = SimpleStats:GetStatChangeLines(newStats, SimpleStats:CombineItemStats(equippedItems[1].link))
 	end
 	
 	-- Finally, augment the tooltip
