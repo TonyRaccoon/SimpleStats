@@ -372,7 +372,7 @@ function SimpleStats:GetStatChangeLines(newStats,currentStats, doIndent)-- Takes
 	statChanges = self:SortStats(statChanges)
 	
 	-- If there's no stat changes, don't bother printing anything
-	if #statChanges == 0 then return false end
+	if #statChanges == 0 then return {} end
 	
 	local lines = {}
 	local indent = doIndent and "  " or ""
