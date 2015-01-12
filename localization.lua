@@ -25,6 +25,7 @@ elseif LOCALE == "deDE" then --=================================================
 	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."] = "Zum Beispiel: Zeige den Vergleich nicht auf Gegenständen mit Beweglichkeit an, wenn du keine Beweglichkeit benutzt.\n\nVergleiche werden weiterhin gezeigt, wenn der Gestand einen Wert besitzt, den du benutzt.\n\nBetrifft nur Stärke, Beweglichkeit und Intelligenz"
 	L["Gem Sockets"] = "Edelsteinsockel"
 	L["Hide comparison if disabled primary stat exists"] = "Zeige Vergleiche nicht an wenn ein deaktivierter Primärwert vorhanden ist"
+	L["Hide comparison if item level is lower"] = "Zeige Vergleiche nicht an wenn die Gegenstandsstufe niedriger ist"
 	L["Minimum item quality"] = "Minimale Qualitätsstufe"
 	L["Minor Stats"] = "Optionale Werte"
 	L["Only usable by current class"] = "Nur von der aktuellen Klasse benutzbar"
@@ -51,6 +52,7 @@ elseif LOCALE == "zhTW" then --=================================================
 	L["For example, hide comparisons on items with Agility if you're not showing Agility.\n\nComparisons will still be shown if the item also has a primary stat you're showing.\n\nOnly affects Strength, Agility, and Intellect."] = "舉例來說，裝備沒顯示敏捷就會隱藏敏捷屬性的比對。\n\n比對仍會顯示如果裝備還有顯示其他主屬性。\n\n只對力量、敏捷與智力生效。"
 	L["Gem Sockets"] = "珠寶插槽"
 	L["Hide comparison if disabled primary stat exists"] = "隱藏非啟用之主屬性的比對"
+	L["Hide comparison if item level is lower"] = nil
 	L["Minimum item quality"] = "最低裝備品質"
 	L["Minor Stats"] = "其他屬性"
 	L["Only usable by current class"] = "只有當前職業能使用的"
