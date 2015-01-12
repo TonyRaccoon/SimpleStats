@@ -592,19 +592,26 @@ function SimpleStats:AddLinesToTooltip(tooltip,lines)					-- Adds the given line
 	local printedSeparator = false
 	
 	for k,line in pairs(lines) do
-		-- Print a separator if we haven't already
-		if not printedSeparator then
-			tooltip:AddLine(" ")
-			printedSeparator = true
-		end
 		-- If it has child line elements, print as a header and print all the children indented
-		if line.lines then
+		if line.lines and #line.lines > 0 then
+			-- Print a separator if we haven't already
+			if not printedSeparator then
+				tooltip:AddLine(" ")
+				printedSeparator = true
+			end
+			
 			tooltip:AddLine(line.text)
 			
 			for k,subline in pairs(line.lines) do
 				tooltip:AddLine("  "..subline.text)
 			end
-		else
+		elseif not line.lines then -- not is there so above if doesn't default to this if line.lines exists and #line.lines == 0
+			-- Print a separator if we haven't already
+			if not printedSeparator then
+				tooltip:AddLine(" ")
+				printedSeparator = true
+			end
+			
 			tooltip:AddLine(line.text)
 		end
 	end
