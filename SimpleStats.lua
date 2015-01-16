@@ -1257,14 +1257,6 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 	}
 end
 
-function SimpleStats:HideBlizzComparison(self)							-- Copied from OldComparison - http://www.wowinterface.com/downloads/fileinfo.php?id=14454
-	local old = self.SetHyperlinkCompareItem
-	self.SetHyperlinkCompareItem = function(self, link, level, shift, main, ...)
-		main = nil
-		return old(self, link, level, shift, main, ...)
-	end
-end
-
 function SimpleStats:OnInitialize()										-- Runs when addon is initialized
 	self.db = LibStub("AceDB-3.0"):New("SimpleStatsDB", self.defaults)
 	local profileOptions = LibStub("AceDBOptions-3.0"):GetOptionsTable(self.db)
@@ -1281,11 +1273,6 @@ function SimpleStats:OnInitialize()										-- Runs when addon is initialized
 	
 	self:HookScript(GameTooltip, "OnTooltipSetItem", "HandleTooltip")
 	self:HookScript(ItemRefTooltip, "OnTooltipSetItem", "HandleTooltip")
-	
-	self:HideBlizzComparison(ShoppingTooltip1)
-	self:HideBlizzComparison(ShoppingTooltip2)
-	self:HideBlizzComparison(ItemRefShoppingTooltip1)
-	self:HideBlizzComparison(ItemRefShoppingTooltip2)
 end
 
 --- Public Functions ---
