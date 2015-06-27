@@ -767,8 +767,13 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 		114082,114083,114084,114085,114086,114087,114112,								-- 645 mission gear
 		114745,114808,114822,114807,114806,114746,										-- Follower armor upgrades
 		114128,114129,114131,114616,114081,114622,										-- Follower weapon upgrades
-		120313, -- Sanketsu, follower upgrade reward from final garrison campaign mission
-		128225, -- Empowered Apexis Fragment
+		120313,																			-- Sanketsu
+		
+		124550,124551,124552,124553,124554,124555,124556,124557,124558,124559,124560,
+		124561,124562,127779,127780,127783,127784,127792,127793,127796,127797,127799,	-- Baleful tokens
+		127800,127805,127806,127809,127810,127818,127819,127822,127823,128348,
+		
+		128225,																			-- Empowered Apexis Fragment
 	}
 	
 	-- Inverse the blacklist so we can do self.blacklistedItems[itemID]
