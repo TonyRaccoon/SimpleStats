@@ -427,12 +427,12 @@ function SimpleStats:CombineItemStats(itemLink1,itemLink2)				-- Returns a table
 		combinedStats = GetItemStats(itemLink1)
 		
 		-- Add item level to stat table
-		local _,_,_,itemLevel1 = GetItemInfo(itemLink1)
+		local itemLevel1 = SimpleStats:GetTrueItemLevel(itemLink1)
 		combinedStats["STAT_AVERAGE_ITEM_LEVEL"] = itemLevel1
 		
 		if itemLink2 then
 			-- Set item level to the average of the two items
-			local _,_,_,itemLevel2 = GetItemInfo(itemLink2)
+			local itemLevel2 = SimpleStats:GetTrueItemLevel(itemLink2)
 			combinedStats["STAT_AVERAGE_ITEM_LEVEL"] = math.floor((itemLevel1+itemLevel2)/2)
 		
 			for statName,statValue in pairs(GetItemStats(itemLink2)) do
@@ -553,6 +553,38 @@ function SimpleStats:AreIdentical(itemLink1, itemLink2)					-- Determines whethe
 	end
 end
 
+function SimpleStats:GetTrueItemLevel(itemString)						-- Scans an item tooltip for the TRUE itemlevel (for heirlooms and Timewalker gear, for example)
+	-- Copied and slightly modified from LibItemUpgradeInfo by eridius
+	local _, itemLink, rarity, itemLevel = GetItemInfo(itemString)
+	local ilvl = self.heirloomCache[itemLink]
+	
+	if ilvl ~= nil then
+		return ilvl, true
+	end
+	
+	if not self.scanningTooltip then
+		self.scanningTooltip = _G.CreateFrame("GameTooltip", "LibItemUpgradeInfoTooltip", nil, "GameTooltipTemplate")
+		self.scanningTooltip:SetOwner(_G.WorldFrame, "ANCHOR_NONE")
+	end
+	
+	self.scanningTooltip:ClearLines()
+	self.scanningTooltip:SetHyperlink(itemLink)
+	
+	for i = 2, 4 do
+		local label, text = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
+		if label then text=label:GetText() end
+		if text then
+			ilvl = tonumber(text:match(self.itemLevelPattern))
+			if ilvl ~= nil then
+				self.heirloomCache[itemLink] = ilvl
+				return ilvl, true
+			end
+		end
+	end
+	
+	return itemLevel, false
+end
+
 function SimpleStats:MergeTooltipLines(lines, newLines, headerLine)		-- Takes a table of lines and a (possibly blank) table of new lines and appends them, adding an optional header line if there's any new lines
 	if newLines then
 		if headerLine then
@@ -624,7 +656,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	local _,itemLink = self:GetItem()
 	if not itemLink then return end -- Quit if this isn't an item tooltip
 	
-	local _,_,rarity,itemLevel,_,itemType,itemSubType,_,invType = GetItemInfo(itemLink)
+	local _,_,rarity,_,_,itemType,itemSubType,_,invType = GetItemInfo(itemLink)
 	local itemID = tonumber(strmatch(itemLink,"item:(%d+):"))
 	
 	-- Quit if:																														-- Quit if:
@@ -634,7 +666,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
 	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType))								-- It's a weapon and doesn't match our weapon settings
 	or (SimpleStats.blacklistedItems[itemID])																						-- It's a blacklisted item
-	or (strmatch(GetMouseFocus() and GetMouseFocus():GetName() or "", "^Character.*Slot$")) then														-- We're looking at an equipped item
+	or (strmatch(GetMouseFocus() and GetMouseFocus():GetName() or "", "^Character.*Slot$")) then									-- We're looking at an equipped item
 		return
 	end
 	
@@ -642,7 +674,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	local equippedItems = {[1]={level=0},[2]={slotExists=false, level=0}}
 	local firstItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
 	if (firstItemLink) then
-		local _,_,_,firstItemLevel = GetItemInfo(firstItemLink)
+		local firstItemLevel = SimpleStats:GetTrueItemLevel(firstItemLink)
 		
 		equippedItems[1] = {
 			id    = tonumber(strmatch(firstItemLink,"item:(%d+):")),
@@ -658,7 +690,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 		
 		local secondItemLink = GetInventoryItemLink("player",SimpleStats.secondSlotID[SimpleStats.invTypes[invType]])
 		if (secondItemLink) then
-			local _,_,_,secondItemLevel = GetItemInfo(secondItemLink)
+			local secondItemLevel = SimpleStats:GetTrueItemLevel(secondItemLink)
 			
 			equippedItems[2] = {
 				id    = tonumber(strmatch(secondItemLink,"item:(%d+):")),
@@ -678,7 +710,8 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- Retrieve data about the main-hand weapon for use later
 	local currentMainHand = {}
 	if GetInventoryItemLink("player",16) then
-		local _,mhItemLink,_,mhItemLevel,_,_,mhSubType,_,mhInvType = GetItemInfo(GetInventoryItemLink("player",16))
+		local _,mhItemLink,_,_,_,_,mhSubType,_,mhInvType = GetItemInfo(GetInventoryItemLink("player",16))
+		local mhItemLevel = SimpleStats:GetTrueItemLevel(GetInventoryItemLink("player",16))
 		
 		currentMainHand = {
 			link = mhItemLink,
@@ -689,8 +722,9 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	end
 	
 	local equippedIs2HWeapon = SimpleStats:IsWeapon2H(currentMainHand.link)
-	
 	local newStats = GetItemStats(itemLink)
+	
+	local itemLevel = SimpleStats:GetTrueItemLevel(itemLink)
 	newStats["STAT_AVERAGE_ITEM_LEVEL"] = itemLevel
 	
 	-- Collect primary stats on the item for use below
@@ -1280,6 +1314,11 @@ function SimpleStats:OnInitialize()										-- Runs when addon is initialized
 	
 	self:HookScript(GameTooltip, "OnTooltipSetItem", "HandleTooltip")
 	self:HookScript(ItemRefTooltip, "OnTooltipSetItem", "HandleTooltip")
+	
+	-- for GetTrueItemLevel()
+	self.itemLevelPattern = _G["ITEM_LEVEL"]:gsub("%%d", "(%%d+)")
+	self.scanningTooltip = false
+	self.heirloomCache = {}
 end
 
 --- Public Functions ---
