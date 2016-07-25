@@ -1,4 +1,4 @@
-﻿## Interface: 60200
+﻿## Interface: 70000
 ## Title: SimpleStats
 ## Notes: Shows customizable stat comparisons in item tooltips
 ## Notes-esES: Shows customizable stat comparisons in item tooltips
@@ -13,7 +13,7 @@
 ## Notes-zhCN: Shows customizable stat comparisons in item tooltips
 ## Notes-zhTW: 在物品提示顯示自訂化的屬性比對
 ## Author: Foxthorn
-## Version: 1.6.4
+## Version: 1.7
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 ## SavedVariables: SimpleStatsDB

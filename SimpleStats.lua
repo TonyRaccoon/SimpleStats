@@ -157,12 +157,12 @@ SimpleStats.options = {													-- Settings GUI table
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_MASTERY_RATING_SHORT),
 			order = 190,
 		},
-		ITEM_MOD_CR_MULTISTRIKE_SHORT = {
+		--[[ITEM_MOD_CR_MULTISTRIKE_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_CR_MULTISTRIKE_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_CR_MULTISTRIKE_SHORT),
 			order = 200,
-		},
+		},]]
 		ITEM_MOD_VERSATILITY = {
 			type = "toggle",
 			name = ITEM_MOD_VERSATILITY,
@@ -175,12 +175,12 @@ SimpleStats.options = {													-- Settings GUI table
 			desc = format(L["Show %s in stat comparisons"], RESISTANCE_LABEL:lower()),
 			order = 220,
 		},
-		ITEM_MOD_SPIRIT_SHORT = {
+		--[[ITEM_MOD_SPIRIT_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_SPIRIT_SHORT,
 			desc = format(L["Show %s in stat comparisons"], ITEM_MOD_SPIRIT_SHORT),
 			order = 230,
-		},
+		},]]
 		ITEM_MOD_DODGE_RATING_SHORT = {
 			type = "toggle",
 			name = ITEM_MOD_DODGE_RATING_SHORT,
@@ -483,21 +483,12 @@ function SimpleStats:CheckWeaponType(weaponType)						-- Determines whether this
 end
 
 function SimpleStats:CheckArmorType(armorType)							-- Determines whether this armor type should have stats printed for it (taking into account settings)
-	if armorType == self.localized.armor.miscellaneous then
+	if armorType == LE_ITEM_ARMOR_GENERIC then
 		return true -- If it's misc. armor (trinket, ring, etc.), always show
 	end
 	
 	local _,class = UnitClass("player")
-	local level = UnitLevel("player")
-	local usability
-	
-	if self.usableArmor[class]["pre40"] and level < 40 then
-		usability = self.usableArmor[class]["pre40"][armorType]
-	elseif self.usableArmor[class]["pre40"] then
-		usability = self.usableArmor[class]["post40"][armorType]
-	else
-		usability = self.usableArmor[class][armorType]
-	end
+	local usability = self.usableArmor[class][armorType]
 	
 	if not usability and self.db.profile.usablearmor > 1 then
 		return false
@@ -514,12 +505,12 @@ end
 
 function SimpleStats:IsWeapon2H(itemLink)								-- Returns whether the given weapon takes up both weapon slots
 	if itemLink then
-		local _,_,_,_,_,_,subType,_,invType = GetItemInfo(itemLink)
+		local _,_,_,_,_,_,_,_,invType,_,_,classID,subclassID = GetItemInfo(itemLink)
 		
 		-- RANGEDRIGHT requires an additional check since wands are RANGEDRIGHT but CAN be wielded with an off-hand
 		if invType == "INVTYPE_2HWEAPON"
 		or invType == "INVTYPE_RANGED"
-		or (invType == "INVTYPE_RANGEDRIGHT" and subType ~= self.localized.weapons.wands) then
+		or (invType == "INVTYPE_RANGEDRIGHT" and subclassID ~= LE_ITEM_WEAPON_WAND) then
 			return true
 		end
 	end
@@ -656,17 +647,17 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	local _,itemLink = self:GetItem()
 	if not itemLink then return end -- Quit if this isn't an item tooltip
 	
-	local _,_,rarity,_,_,itemType,itemSubType,_,invType = GetItemInfo(itemLink)
+	local _,_,rarity,_,_,_,_,_,invType,_,_,classID,subclassID = GetItemInfo(itemLink)
 	local itemID = tonumber(strmatch(itemLink,"item:(%d+):"))
 	
-	-- Quit if:																														-- Quit if:
-	if (itemType ~= SimpleStats.localized.armorName and itemType ~= SimpleStats.localized.weaponName)								-- It's not armor or a weapon
-	or (invType == "INVTYPE_TABARD" or invType == "INVTYPE_BODY")																	-- It's a shirt or tabard
-	or (rarity < SimpleStats.db.profile.minquality)																					-- It's below our current quality threshold
-	or (itemType == SimpleStats.localized.armorName and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(itemSubType))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
-	or (itemType == SimpleStats.localized.weaponName and not SimpleStats:CheckWeaponType(itemSubType))								-- It's a weapon and doesn't match our weapon settings
-	or (SimpleStats.blacklistedItems[itemID])																						-- It's a blacklisted item
-	or (strmatch(GetMouseFocus() and GetMouseFocus():GetName() or "", "^Character.*Slot$")) then									-- We're looking at an equipped item
+	-- Quit if:																											-- Quit if:
+	if (classID ~= LE_ITEM_CLASS_ARMOR and classID ~= LE_ITEM_CLASS_WEAPON)												-- It's not armor or a weapon
+	or (invType == "INVTYPE_TABARD" or invType == "INVTYPE_BODY")														-- It's a shirt or tabard
+	or (rarity < SimpleStats.db.profile.minquality)																		-- It's below our current quality threshold
+	or (classID == LE_ITEM_CLASS_ARMOR and invType ~= "INVTYPE_CLOAK" and not SimpleStats:CheckArmorType(subclassID))	-- It's armor and doesn't match our armor settings (but always show cloth->cloaks)
+	or (classID == LE_ITEM_CLASS_WEAPON and not SimpleStats:CheckWeaponType(subclassID))								-- It's a weapon and doesn't match our weapon settings
+	or (SimpleStats.blacklistedItems[itemID])																			-- It's a blacklisted item
+	or (strmatch(GetMouseFocus() and GetMouseFocus():GetName() or "", "^Character.*Slot$")) then						-- We're looking at an equipped item
 		return
 	end
 	
@@ -793,7 +784,7 @@ end
 
 function SimpleStats:SetupTables()										-- Sets up all of the utility/data tables used by the addon
 	
-	-- These items should never show a stat comparison (most of them are Use: items with an ItemType of Armor or Weapon)
+	-- These items should never show a stat comparison (most of them are Use: items with a classID of LE_ITEM_CLASS_ARMOR/WEAPON)
 	local blacklist = {
 		114052,114053,114094,114096,114097,114098,114099,114100,114101,114105,114108,	-- 512-610 mission gear
 		114057,114058,114059,114063,114066,114068,114109,								-- 615 mission gear
@@ -930,370 +921,311 @@ function SimpleStats:SetupTables()										-- Sets up all of the utility/data t
 		ITEM_MOD_CR_STURDINESS_SHORT = true,
 	}
 	
-	-- Extract localized armor and weapon type strings from Auction House functions (no global strings for them are available)
-	local itemClasses = {GetAuctionItemClasses()}
-	local weaponTypes = {GetAuctionItemSubClasses(1)}
-	local armorTypes = {GetAuctionItemSubClasses(2)}
-	
-	-- Define the order weapon names appear in GetAuctionItemSubClasses()
-	local names = {
-		weapons = {
-			"onehandedaxes",
-			"twohandedaxes",
-			"bows",
-			"guns",
-			"onehandedmaces",
-			"twohandedmaces",
-			"polearms",
-			"onehandedswords",
-			"twohandedswords",
-			"staves",
-			"fistweapons",
-			"miscellaneous",
-			"daggers",
-			"thrown",
-			"crossbows",
-			"wands",
-			"fishingpoles"
-		},
-		armor = {
-			"miscellaneous",
-			"cloth",
-			"leather",
-			"mail",
-			"plate",
-			"cosmetic",
-			"shields"
-		}
-	}
-	
-	-- Create the final localized string array structure
-	self.localized = {
-		weaponName = itemClasses[1],
-		armorName = itemClasses[2],
-		weapons = {},
-		armor = {},
-		reverse = {
-			armor = {}
-		}
-	}
-	
-	-- Merge localized and english weapon names
-	for i,name in pairs(names.weapons) do
-		self.localized.weapons[name] = weaponTypes[i]
-	end
-	
-	-- Merge localized and english armor names
-	for i,name in pairs(names.armor) do
-		self.localized.armor[name] = armorTypes[i]
-	end
-	
-	-- Create inverse table for localized -> english conversion
-	for engname,locname in pairs(self.localized.armor) do
-		self.localized.reverse.armor[locname] = engname
-	end
-	
 	-- 3=Useful for spec, 2=Useful for class, 1=Usable
 	self.usableWeapons = {
 		WARLOCK = {
-			[self.localized.weapons.onehandedswords] 		= 3,
-			[self.localized.weapons.daggers]				= 3,
-			[self.localized.weapons.staves]					= 3,
-			[self.localized.weapons.wands]					= 3,
+			[LE_ITEM_WEAPON_SWORD1H] 		= 3,
+			[LE_ITEM_WEAPON_DAGGER]			= 3,
+			[LE_ITEM_WEAPON_STAFF]			= 3,
+			[LE_ITEM_WEAPON_WAND]			= 3,
 		},
 		MAGE = {
-			[self.localized.weapons.onehandedswords]		= 3,
-			[self.localized.weapons.daggers]				= 3,
-			[self.localized.weapons.staves]					= 3,
-			[self.localized.weapons.wands]					= 3,
+			[LE_ITEM_WEAPON_SWORD1H]		= 3,
+			[LE_ITEM_WEAPON_DAGGER]			= 3,
+			[LE_ITEM_WEAPON_STAFF]			= 3,
+			[LE_ITEM_WEAPON_WAND]			= 3,
 		},
 		PRIEST = {
-			[self.localized.weapons.onehandedmaces]			= 3,
-			[self.localized.weapons.daggers]				= 3,
-			[self.localized.weapons.staves]					= 3,
-			[self.localized.weapons.wands]					= 3,
+			[LE_ITEM_WEAPON_MACE1H]			= 3,
+			[LE_ITEM_WEAPON_DAGGER]			= 3,
+			[LE_ITEM_WEAPON_STAFF]			= 3,
+			[LE_ITEM_WEAPON_WAND]			= 3,
 		},
 		DRUID = {
-			[self.localized.weapons.onehandedmaces]			= 2,
-			[self.localized.weapons.twohandedmaces]			= 2,
-			[self.localized.weapons.daggers]				= 2,
-			[self.localized.weapons.fistweapons]			= 2,
-			[self.localized.weapons.polearms]				= 2,
-			[self.localized.weapons.staves]					= 2,
+			[LE_ITEM_WEAPON_MACE1H]			= 2,
+			[LE_ITEM_WEAPON_MACE2H]			= 2,
+			[LE_ITEM_WEAPON_DAGGER]			= 2,
+			[LE_ITEM_WEAPON_UNARMED]		= 2,
+			[LE_ITEM_WEAPON_POLEARM]		= 2,
+			[LE_ITEM_WEAPON_STAFF]			= 2,
 			
 			[102] = { -- Balance
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
-				[self.localized.weapons.polearms]			= 3,
-				[self.localized.weapons.staves]				= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
 			[103] = { -- Feral
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.polearms]			= 3,
-				[self.localized.weapons.staves]				= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
 			[104] = { -- Guardian
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.polearms]			= 3,
-				[self.localized.weapons.staves]				= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
 			[105] = { -- Restoration
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
-				[self.localized.weapons.polearms]			= 3,
-				[self.localized.weapons.staves]				= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
 		},
 		ROGUE = {
-			[self.localized.weapons.bows]					= 1,
-			[self.localized.weapons.crossbows]				= 1,
-			[self.localized.weapons.guns]					= 1,
+			[LE_ITEM_WEAPON_BOWS]			= 1,
+			[LE_ITEM_WEAPON_CROSSBOW]		= 1,
+			[LE_ITEM_WEAPON_GUNS]			= 1,
 			
-			[self.localized.weapons.onehandedaxes]			= 2,
-			[self.localized.weapons.onehandedmaces]			= 2,
-			[self.localized.weapons.onehandedswords]		= 2,
-			[self.localized.weapons.daggers]				= 2,
-			[self.localized.weapons.fistweapons]			= 2,
+			[LE_ITEM_WEAPON_AXE1H]			= 2,
+			[LE_ITEM_WEAPON_MACE1H]			= 2,
+			[LE_ITEM_WEAPON_SWORD1H]		= 2,
+			[LE_ITEM_WEAPON_DAGGER]			= 2,
+			[LE_ITEM_WEAPON_UNARMED]		= 2,
 			
 			[259] = { -- Assassination
-				[self.localized.weapons.daggers]			= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
 			},
 			[260] = { -- Combat
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.onehandedswords]	= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_SWORD1H]	= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
 			},
 			[261] = { -- Subtlety
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.onehandedswords]	= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_SWORD1H]	= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
 			},
 		},
 		MONK = {
-			[self.localized.weapons.onehandedaxes]			= 3,
-			[self.localized.weapons.onehandedmaces]			= 3,
-			[self.localized.weapons.onehandedswords]		= 3,
-			[self.localized.weapons.fistweapons]			= 3,
-			[self.localized.weapons.polearms]				= 3,
-			[self.localized.weapons.staves]					= 3,
+			[LE_ITEM_WEAPON_AXE1H]			= 3,
+			[LE_ITEM_WEAPON_MACE1H]			= 3,
+			[LE_ITEM_WEAPON_SWORD1H]		= 3,
+			[LE_ITEM_WEAPON_UNARMED]		= 3,
+			[LE_ITEM_WEAPON_POLEARM]		= 3,
+			[LE_ITEM_WEAPON_STAFF]			= 3,
 		},
 		SHAMAN = {
-			[self.localized.weapons.onehandedaxes]			= 2,
-			[self.localized.weapons.onehandedmaces]			= 2,
-			[self.localized.weapons.twohandedaxes]			= 2,
-			[self.localized.weapons.twohandedmaces]			= 2,
-			[self.localized.weapons.daggers]				= 2,
-			[self.localized.weapons.fistweapons]			= 2,
-			[self.localized.weapons.staves]					= 2,
+			[LE_ITEM_WEAPON_AXE1H]			= 2,
+			[LE_ITEM_WEAPON_MACE1H]			= 2,
+			[LE_ITEM_WEAPON_AXE2H]			= 2,
+			[LE_ITEM_WEAPON_MACE2H]			= 2,
+			[LE_ITEM_WEAPON_DAGGER]			= 2,
+			[LE_ITEM_WEAPON_UNARMED]		= 2,
+			[LE_ITEM_WEAPON_STAFF]			= 2,
 			
 			[262] = { -- Elemental
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.twohandedaxes]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
-				[self.localized.weapons.staves]				= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_AXE2H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
-			[262] = { -- Enhancement
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
+			[263] = { -- Enhancement
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
 			},
-			[262] = { -- Restoration
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.twohandedaxes]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
-				[self.localized.weapons.staves]				= 3,
+			[264] = { -- Restoration
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_AXE2H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
 		},
 		HUNTER = {
-			[self.localized.weapons.onehandedaxes]			= 1,
-			[self.localized.weapons.onehandedswords]		= 1,
-			[self.localized.weapons.twohandedaxes]			= 1,
-			[self.localized.weapons.twohandedswords]		= 1,
-			[self.localized.weapons.daggers]				= 1,
-			[self.localized.weapons.fistweapons]			= 1,
-			[self.localized.weapons.polearms]				= 1,
-			[self.localized.weapons.staves]					= 1,
+			[LE_ITEM_WEAPON_AXE1H]			= 1,
+			[LE_ITEM_WEAPON_SWORD1H]		= 1,
+			[LE_ITEM_WEAPON_AXE2H]			= 1,
+			[LE_ITEM_WEAPON_SWORD2H]		= 1,
+			[LE_ITEM_WEAPON_DAGGER]			= 1,
+			[LE_ITEM_WEAPON_UNARMED]		= 1,
+			[LE_ITEM_WEAPON_POLEARM]		= 1,
+			[LE_ITEM_WEAPON_STAFF]			= 1,
 			
-			[self.localized.weapons.guns]					= 3,
-			[self.localized.weapons.bows]					= 3,
-			[self.localized.weapons.crossbows]				= 3,
+			[LE_ITEM_WEAPON_GUNS]			= 2,
+			[LE_ITEM_WEAPON_BOWS]			= 2,
+			[LE_ITEM_WEAPON_CROSSBOW]		= 2,
+			
+			[253] = { -- Beast Mastery
+				[LE_ITEM_WEAPON_GUNS]		= 3,
+				[LE_ITEM_WEAPON_BOWS]		= 3,
+				[LE_ITEM_WEAPON_CROSSBOW]	= 3,
+			},
+			
+			[254] = { -- Marksmanship
+				[LE_ITEM_WEAPON_GUNS]		= 3,
+				[LE_ITEM_WEAPON_BOWS]		= 3,
+				[LE_ITEM_WEAPON_CROSSBOW]	= 3,
+			},
+			
+			[255] = { -- Survival
+				[LE_ITEM_WEAPON_AXE2H]		= 3,
+				[LE_ITEM_WEAPON_SWORD2H]	= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
+			},
+			
+			
 		},
 		WARRIOR = {
-			[self.localized.weapons.bows]					= 1,
-			[self.localized.weapons.crossbows]				= 1,
-			[self.localized.weapons.guns]					= 1,
+			[LE_ITEM_WEAPON_BOWS]			= 1,
+			[LE_ITEM_WEAPON_CROSSBOW]		= 1,
+			[LE_ITEM_WEAPON_GUNS]			= 1,
 			
-			[self.localized.weapons.onehandedaxes]			= 2,
-			[self.localized.weapons.onehandedmaces]			= 2,
-			[self.localized.weapons.onehandedswords]		= 2,
-			[self.localized.weapons.twohandedaxes]			= 2,
-			[self.localized.weapons.twohandedmaces]			= 2,
-			[self.localized.weapons.twohandedswords]		= 2,
-			[self.localized.weapons.daggers]				= 2,
-			[self.localized.weapons.fistweapons]			= 2,
-			[self.localized.weapons.polearms]				= 2,
-			[self.localized.weapons.staves]					= 2,
+			[LE_ITEM_WEAPON_AXE1H]			= 2,
+			[LE_ITEM_WEAPON_MACE1H]			= 2,
+			[LE_ITEM_WEAPON_SWORD1H]		= 2,
+			[LE_ITEM_WEAPON_AXE2H]			= 2,
+			[LE_ITEM_WEAPON_MACE2H]			= 2,
+			[LE_ITEM_WEAPON_SWORD2H]		= 2,
+			[LE_ITEM_WEAPON_DAGGER]			= 2,
+			[LE_ITEM_WEAPON_UNARMED]		= 2,
+			[LE_ITEM_WEAPON_POLEARM]		= 2,
+			[LE_ITEM_WEAPON_STAFF]			= 2,
 			
 			[71] = { -- Arms
-				[self.localized.weapons.twohandedaxes]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.twohandedswords]	= 3,
-				[self.localized.weapons.polearms]			= 3,
-				[self.localized.weapons.staves]				= 3,
+				[LE_ITEM_WEAPON_AXE2H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_SWORD2H]	= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
+				[LE_ITEM_WEAPON_STAFF]		= 3,
 			},
 			[72] = { -- Fury
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.onehandedswords]	= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_SWORD1H]	= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
 			},
 			[73] = { -- Protection
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.onehandedswords]	= 3,
-				[self.localized.weapons.daggers]			= 3,
-				[self.localized.weapons.fistweapons]		= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_SWORD1H]	= 3,
+				[LE_ITEM_WEAPON_DAGGER]		= 3,
+				[LE_ITEM_WEAPON_UNARMED]	= 3,
 			},
 		},
 		PALADIN = {
-			[self.localized.weapons.onehandedaxes]			= 2,
-			[self.localized.weapons.onehandedmaces]			= 2,
-			[self.localized.weapons.onehandedswords]		= 2,
-			[self.localized.weapons.twohandedaxes]			= 2,
-			[self.localized.weapons.twohandedmaces]			= 2,
-			[self.localized.weapons.twohandedswords]		= 2,
-			[self.localized.weapons.polearms]				= 2,
+			[LE_ITEM_WEAPON_AXE1H]			= 2,
+			[LE_ITEM_WEAPON_MACE1H]			= 2,
+			[LE_ITEM_WEAPON_SWORD1H]		= 2,
+			[LE_ITEM_WEAPON_AXE2H]			= 2,
+			[LE_ITEM_WEAPON_MACE2H]			= 2,
+			[LE_ITEM_WEAPON_SWORD2H]		= 2,
+			[LE_ITEM_WEAPON_POLEARM]		= 2,
 				
 			[67] = { -- Retribution
-				[self.localized.weapons.twohandedaxes]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.twohandedswords]	= 3,
-				[self.localized.weapons.polearms]			= 3,
+				[LE_ITEM_WEAPON_AXE2H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_SWORD2H]	= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
 			},
 			[66] = { -- Protection
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.onehandedswords]	= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_SWORD1H]	= 3,
 			},
 			[65] = { -- Holy
-				[self.localized.weapons.onehandedaxes]		= 3,
-				[self.localized.weapons.onehandedmaces]		= 3,
-				[self.localized.weapons.onehandedswords]	= 3,
-				[self.localized.weapons.twohandedaxes]		= 3,
-				[self.localized.weapons.twohandedmaces]		= 3,
-				[self.localized.weapons.twohandedswords]	= 3,
-				[self.localized.weapons.polearms]			= 3,
+				[LE_ITEM_WEAPON_AXE1H]		= 3,
+				[LE_ITEM_WEAPON_MACE1H]		= 3,
+				[LE_ITEM_WEAPON_SWORD1H]	= 3,
+				[LE_ITEM_WEAPON_AXE2H]		= 3,
+				[LE_ITEM_WEAPON_MACE2H]		= 3,
+				[LE_ITEM_WEAPON_SWORD2H]	= 3,
+				[LE_ITEM_WEAPON_POLEARM]	= 3,
 			},
 		},
 		DEATHKNIGHT = {
-			[self.localized.weapons.onehandedaxes]			= 3,
-			[self.localized.weapons.onehandedmaces]			= 3,
-			[self.localized.weapons.onehandedswords]		= 3,
-			[self.localized.weapons.twohandedaxes]			= 3,
-			[self.localized.weapons.twohandedmaces]			= 3,
-			[self.localized.weapons.twohandedswords]		= 3,
-			[self.localized.weapons.polearms]				= 3,
+			[LE_ITEM_WEAPON_AXE1H]			= 3,
+			[LE_ITEM_WEAPON_MACE1H]			= 3,
+			[LE_ITEM_WEAPON_SWORD1H]		= 3,
+			[LE_ITEM_WEAPON_AXE2H]			= 3,
+			[LE_ITEM_WEAPON_MACE2H]			= 3,
+			[LE_ITEM_WEAPON_SWORD2H]		= 3,
+			[LE_ITEM_WEAPON_POLEARM]		= 3,
+		},
+		DEMONHUNTER = {
+			[LE_ITEM_WEAPON_DAGGER]			= 1,
+			[LE_ITEM_WEAPON_UNARMED]		= 1,
+			[LE_ITEM_WEAPON_AXE1H]			= 1,
+			[LE_ITEM_WEAPON_MACE1H]			= 1,
+			[LE_ITEM_WEAPON_SWORD1H]		= 1,
+			[LE_ITEM_WEAPON_WARGLAIVE]		= 3,
 		}
 	}
 	
 	-- 2=Useful for class, 1=Usable
 	self.usableArmor = {
 		WARLOCK = {
-			[self.localized.armor.cloth]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 2,
 		},
 		MAGE = {
-			[self.localized.armor.cloth]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 2,
 		},
 		PRIEST = {
-			[self.localized.armor.cloth]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 2,
 		},
 		DRUID = {
-			[self.localized.armor.cloth]		= 1,
-			[self.localized.armor.leather]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 2,
 		},
 		ROGUE = {
-			[self.localized.armor.cloth]		= 1,
-			[self.localized.armor.leather]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 2,
 		},
 		MONK = {
-			[self.localized.armor.cloth]		= 1,
-			[self.localized.armor.leather]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 2,
 		},
 		SHAMAN = {
-			["pre40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 2,
-				[self.localized.armor.shields]	= 2,
-			},
-			["post40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 1,
-				[self.localized.armor.mail]		= 2,
-				[self.localized.armor.shields]	= 2,
-			},
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 1,
+			[LE_ITEM_ARMOR_MAIL]	= 2,
+			[LE_ITEM_ARMOR_SHIELD]	= 2,
 		},
 		HUNTER = {
-			["pre40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 2,
-			},
-			["post40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 1,
-				[self.localized.armor.mail]		= 2,
-			},
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 1,
+			[LE_ITEM_ARMOR_MAIL]	= 2,
 		},
 		WARRIOR = {
-			["pre40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 1,
-				[self.localized.armor.mail]		= 2,
-				[self.localized.armor.shields]	= 2,
-			},
-			["post40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 1,
-				[self.localized.armor.mail]		= 1,
-				[self.localized.armor.plate]	= 2,
-				[self.localized.armor.shields]	= 2,
-			},
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 1,
+			[LE_ITEM_ARMOR_MAIL]	= 1,
+			[LE_ITEM_ARMOR_PLATE]	= 2,
+			[LE_ITEM_ARMOR_SHIELD]	= 2,
 		},
 		PALADIN = {
-			["pre40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 1,
-				[self.localized.armor.mail]		= 2,
-				[self.localized.armor.shields]	= 2,
-			},
-			["post40"] = {
-				[self.localized.armor.cloth]	= 1,
-				[self.localized.armor.leather]	= 1,
-				[self.localized.armor.mail]		= 1,
-				[self.localized.armor.plate]	= 2,
-				[self.localized.armor.shields]	= 2,
-			},
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 1,
+			[LE_ITEM_ARMOR_MAIL]	= 1,
+			[LE_ITEM_ARMOR_PLATE]	= 2,
+			[LE_ITEM_ARMOR_SHIELD]	= 2,
 		},
 		DEATHKNIGHT = {
-			[self.localized.armor.cloth]		= 1,
-			[self.localized.armor.leather]		= 1,
-			[self.localized.armor.mail]			= 1,
-			[self.localized.armor.plate]		= 2,
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER]	= 1,
+			[LE_ITEM_ARMOR_MAIL]	= 1,
+			[LE_ITEM_ARMOR_PLATE]	= 2,
+		},
+		DEMONHUNTER = {
+			[LE_ITEM_ARMOR_CLOTH]	= 1,
+			[LE_ITEM_ARMOR_LEATHER] = 2,
 		}
 	}
 end
