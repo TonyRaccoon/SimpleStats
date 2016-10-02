@@ -528,20 +528,19 @@ function SimpleStats:AreIdentical(itemLink1, itemLink2)					-- Determines whethe
 	itemLink1 = string.match(itemLink1, "item[%-?%d:]+")
 	itemLink2 = string.match(itemLink2, "item[%-?%d:]+")
 	
-	local _, id1, _, _, _, _, _, suffix1, _, _, _, diff1, nbonus1 = strsplit(":", itemLink1)
-	local _, id2, _, _, _, _, _, suffix2, _, _, _, diff2, nbonus2 = strsplit(":", itemLink2)
+	local _, itemID1, _, _, _, _, _, suffixID1, _, _, _, upgradeType1, instanceDifficultyID1 = strsplit(":", itemLink1)
+	local _, itemID2, _, _, _, _, _, suffixID2, _, _, _, upgradeType2, instanceDifficultyID2 = strsplit(":", itemLink2)
 	
-	local bonus1 = string.match(itemLink1, "item:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:(.+)")
-	local bonus2 = string.match(itemLink2, "item:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:%d+:(.+)")
+	local bonuses1 = string.match(itemLink1, "item:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:(.*)")
+	local bonuses2 = string.match(itemLink2, "item:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:%d*:(.*)")
 	
-	if  id1     == id2
-	and suffix1 == suffix2
-	and diff1   == diff2
-	and bonus1  == bonus2 then
-		return true
-	else
-		return false
-	end
+	return (
+		itemID1 == itemID2
+		and suffixID1 == suffixID2
+		and upgradeType1 == upgradeType2
+		and instanceDifficultyID1 == instanceDifficultyID2
+		and bonuses1 == bonuses2
+	)
 end
 
 function SimpleStats:GetTrueItemLevel(itemString)						-- Scans an item tooltip for the TRUE itemlevel (for heirlooms and Timewalker gear, for example)
