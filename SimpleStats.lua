@@ -567,11 +567,13 @@ function SimpleStats:GetTrueItemLevel(itemString)						-- Scans an item tooltip 
 			ilvl = tonumber(text:match(self.itemLevelPattern))
 			if ilvl ~= nil then
 				self.heirloomCache[itemLink] = ilvl
+				self.scanningTooltip:Hide()
 				return ilvl, true
 			end
 		end
 	end
 	
+	self.scanningTooltip:Hide()
 	return itemLevel, false
 end
 
