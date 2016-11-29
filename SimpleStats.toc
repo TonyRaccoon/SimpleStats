@@ -1,4 +1,4 @@
-﻿## Interface: 70000
+﻿## Interface: 70100
 ## Title: SimpleStats
 ## Notes: Shows customizable stat comparisons in item tooltips
 ## Notes-esES: Shows customizable stat comparisons in item tooltips
