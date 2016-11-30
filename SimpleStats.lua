@@ -543,37 +543,28 @@ function SimpleStats:AreIdentical(itemLink1, itemLink2)					-- Determines whethe
 	)
 end
 
-function SimpleStats:GetTrueItemLevel(itemString)						-- Scans an item tooltip for the TRUE itemlevel (for heirlooms and Timewalker gear, for example)
-	-- Copied and slightly modified from LibItemUpgradeInfo by eridius
-	local _, itemLink, rarity, itemLevel = GetItemInfo(itemString)
-	local ilvl = self.heirloomCache[itemLink]
+function SimpleStats:GetTrueItemLevel(link)						-- Scans an item tooltip for the TRUE itemlevel (for heirlooms and Timewalker gear, for example)
+	local _, itemLink, rarity, itemLevel = GetItemInfo(link)
+	local ilvl = self.ilvlCache[itemLink]
 	
 	if ilvl ~= nil then
 		return ilvl, true
 	end
 	
-	if not self.scanningTooltip then
-		self.scanningTooltip = _G.CreateFrame("GameTooltip", "LibItemUpgradeInfoTooltip", nil, "GameTooltipTemplate")
-		self.scanningTooltip:SetOwner(_G.WorldFrame, "ANCHOR_NONE")
-	end
+	self.scanTip:ClearLines()
+	self.scanTip:SetHyperlink(link)
 	
-	self.scanningTooltip:ClearLines()
-	self.scanningTooltip:SetHyperlink(itemLink)
-	
-	for i = 2, 4 do
-		local label, text = _G["LibItemUpgradeInfoTooltipTextLeft"..i], nil
-		if label then text=label:GetText() end
-		if text then
+	for i = 2, self.scanTip:NumLines() do
+		local text = _G["SimpleStatsScanTooltipTextLeft"..i]:GetText()
+		if text and text ~= "" then
 			ilvl = tonumber(text:match(self.itemLevelPattern))
 			if ilvl ~= nil then
-				self.heirloomCache[itemLink] = ilvl
-				self.scanningTooltip:Hide()
+				self.ilvlCache[itemLink] = ilvl
 				return ilvl, true
 			end
 		end
 	end
 	
-	self.scanningTooltip:Hide()
 	return itemLevel, false
 end
 
@@ -665,6 +656,7 @@ function SimpleStats:HandleTooltip(self, ...)							-- Tooltip handler, parses a
 	-- Get data on currently equipped items
 	local equippedItems = {[1]={level=0},[2]={slotExists=false, level=0}}
 	local firstItemLink = GetInventoryItemLink("player",SimpleStats.invTypes[invType])
+	
 	if (firstItemLink) then
 		local firstItemLevel = SimpleStats:GetTrueItemLevel(firstItemLink)
 		
@@ -1248,10 +1240,12 @@ function SimpleStats:OnInitialize()										-- Runs when addon is initialized
 	self:HookScript(GameTooltip, "OnTooltipSetItem", "HandleTooltip")
 	self:HookScript(ItemRefTooltip, "OnTooltipSetItem", "HandleTooltip")
 	
-	-- for GetTrueItemLevel()
+	self.ilvlCache = {}
 	self.itemLevelPattern = _G["ITEM_LEVEL"]:gsub("%%d", "(%%d+)")
-	self.scanningTooltip = false
-	self.heirloomCache = {}
+	self.scanTip = CreateFrame("GameTooltip", "SimpleStatsScanTooltip", nil, "GameTooltipTemplate")
+	self.scanTip:SetOwner(WorldFrame, "ANCHOR_NONE")
+	self.scanTip:SetClampedToScreen(false)
+	self.scanTip:SetPoint("TOPLEFT", UIParent, -100000,-100000) -- i really, really want to make sure this tooltip is hidden, so move it far off-screen
 end
 
 --- Public Functions ---
